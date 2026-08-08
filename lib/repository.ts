@@ -506,6 +506,26 @@ export async function markerPaminnelseSendt(ids: string[]): Promise<void> {
   await query("update bookings set paminnelse_sendt = true where id = any($1::uuid[])", [ids]);
 }
 
+// ---- GDPR: dataminimering ----
+// Anonymiserer kundedata eldre enn 12 mnd og sletter gamle chat-logger.
+// Fakturaer røres IKKE (bokføringsloven krever 5 års oppbevaring).
+export async function kjorOpprydding(): Promise<{ kunder: number; meldinger: number }> {
+  if (!getPool()) return { kunder: 0, meldinger: 0 };
+  const k = await query<{ n: string }>(
+    `with oppdatert as (
+       update customers set navn = 'Slettet kunde', telefon = null, epost = null, notat = null
+        where created_at < now() - interval '12 months' and navn <> 'Slettet kunde'
+       returning 1
+     ) select count(*)::text as n from oppdatert`
+  );
+  const m = await query<{ n: string }>(
+    `with slettet as (
+       delete from chat_messages where created_at < now() - interval '12 months' returning 1
+     ) select count(*)::text as n from slettet`
+  );
+  return { kunder: Number(k[0]?.n ?? 0), meldinger: Number(m[0]?.n ?? 0) };
+}
+
 // ---- Faktura + skatt-avsetning (Milepæl 4) ----
 
 export type DashFaktura = {

@@ -19,13 +19,14 @@ const inputStyle: React.CSSProperties = {
 
 function pilleStil(aktiv: boolean): React.CSSProperties {
   return {
-    padding: "10px 12px",
+    padding: "12px 15px",
+    minHeight: 46,
     border: `1px solid ${aktiv ? "var(--accent)" : "var(--line)"}`,
     background: aktiv ? "var(--accent)" : "var(--surface)",
     color: aktiv ? "#fff" : "var(--ink)",
     borderRadius: 10,
     fontWeight: 600,
-    fontSize: 14,
+    fontSize: 14.5,
     cursor: "pointer",
   };
 }
@@ -140,8 +141,22 @@ export default function BookingClient({ slug, bedriftNavn, tjenester, lang }: Pr
     );
   }
 
+  const kanBooke = !!(valgt && dato && tid && navn.trim()) && !sender;
+  const cta = sender
+    ? tx.booker
+    : !valgt
+    ? tx.velgEnBehandling
+    : !dato
+    ? tx.velgEnDag
+    : !tid
+    ? tx.velgEnTid
+    : !navn.trim()
+    ? tx.fyllNavn
+    : tx.book(valgt.navn, tid);
+  const fraPris = valgt ? valgt.prisKr : tjenester.length ? Math.min(...tjenester.map((t) => t.prisKr)) : 0;
+
   return (
-    <div>
+    <div id="booking-topp">
       <h2 style={{ marginTop: 8 }}>{tx.velgBehandling}</h2>
       <div role="radiogroup" aria-label={tx.velgBehandling} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {tjenester.map((t) => {
@@ -186,7 +201,7 @@ export default function BookingClient({ slug, bedriftNavn, tjenester, lang }: Pr
       {valgt && (
         <>
           <h2 style={{ marginTop: 20 }}>{tx.velgDag}</h2>
-          <div role="radiogroup" aria-label={tx.velgDag} style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+          <div role="radiogroup" aria-label={tx.velgDag} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {dager.map((d) => (
               <button
                 key={d.value}
@@ -263,19 +278,28 @@ export default function BookingClient({ slug, bedriftNavn, tjenester, lang }: Pr
         </p>
       )}
 
-      <button className="btn" style={{ marginTop: 16 }} disabled={!valgt || !dato || !tid || !navn.trim() || sender} onClick={book}>
-        {sender
-          ? tx.booker
-          : !valgt
-          ? tx.velgEnBehandling
-          : !dato
-          ? tx.velgEnDag
-          : !tid
-          ? tx.velgEnTid
-          : !navn.trim()
-          ? tx.fyllNavn
-          : tx.book(valgt.navn, tid)}
+      <button className="btn" style={{ marginTop: 16, minHeight: 48 }} disabled={!kanBooke} onClick={book}>
+        {cta}
       </button>
+
+      {/* Sticky «Bestill time» på mobil (tommelsone) */}
+      <div className="mobil-bar">
+        <div>
+          <div className="muted" style={{ fontSize: 11 }}>Fra</div>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>{fraPris.toLocaleString(tx.datoLocale)} kr</div>
+        </div>
+        <button
+          type="button"
+          className="btn"
+          style={{ width: "auto", padding: "13px 22px", minHeight: 48 }}
+          onClick={() => {
+            if (kanBooke) book();
+            else document.getElementById("booking-topp")?.scrollIntoView({ behavior: "smooth" });
+          }}
+        >
+          {kanBooke ? tx.book(valgt!.navn, tid!) : lang === "en" ? "Book a time" : "Bestill time"}
+        </button>
+      </div>
     </div>
   );
 }

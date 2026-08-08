@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import DashboardNav from "../DashboardNav";
+import KiForslag from "./KiForslag";
 import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { harKI } from "@/lib/chat";
@@ -129,24 +130,26 @@ export default async function Oppsett({
             (KI aktiveres når <code>ANTHROPIC_API_KEY</code> er satt. Du kan fylle inn feltene nå.)
           </p>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 12 }}>
+        <KiForslag />
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
           <label>
             <span className="muted" style={labelHint}>Adresse / hvor kunden møter</span>
-            <input name="adresse" defaultValue={c.adressePolicy ?? ""} placeholder="Sendes på SMS dagen før timen" style={inputStyle} />
+            <input id="adresse" name="adresse" defaultValue={c.adressePolicy ?? ""} placeholder="Sendes på SMS dagen før timen" style={inputStyle} />
           </label>
           <label>
             <span className="muted" style={labelHint}>Avbestillingsregler</span>
-            <input name="avbestilling" defaultValue={c.avbestilling ?? ""} placeholder="Gratis frem til 24 timer før timen" style={inputStyle} />
+            <input id="avbestilling" name="avbestilling" defaultValue={c.avbestilling ?? ""} placeholder="Gratis frem til 24 timer før timen" style={inputStyle} />
           </label>
           <label>
             <span className="muted" style={labelHint}>Tone</span>
-            <input name="tone" defaultValue={c.tone ?? ""} placeholder="Vennlig og uformell" style={inputStyle} />
+            <input id="tone" name="tone" defaultValue={c.tone ?? ""} placeholder="Vennlig og uformell" style={inputStyle} />
           </label>
           <label>
             <span className="muted" style={labelHint}>
               Vanlige spørsmål og svar (ett per linje)
             </span>
             <textarea
+              id="faq"
               name="faq"
               defaultValue={c.faq ?? ""}
               rows={5}

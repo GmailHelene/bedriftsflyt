@@ -68,3 +68,15 @@ h2 { font-family: Georgia, serif; font-size: 18px; margin: 0 0 8px; }
   body { background: #fff; }
   .card { box-shadow: none; border: none; }
 }
+
+/* Sticky «Bestill time» kun på mobil (tommelsone). */
+.mobil-bar { display: none; }
+@media (max-width: 768px) {
+  .mobil-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding: 12px 18px; box-shadow: 0 -4px 20px rgba(36, 26, 34, .12);
+  }
+  .wrap { padding-bottom: 92px; }
+}
