@@ -33,6 +33,7 @@ export default async function Dashboard({
   let skattAvsatt = 0;
   let abonnement: Awaited<ReturnType<typeof hentAbonnement>> = { agreementId: null, status: null };
   let dbFeil = false;
+  let feilMelding = "";
   try {
     b = await hentBedrift(slug);
     if (b) {
@@ -44,6 +45,7 @@ export default async function Dashboard({
   } catch (e) {
     console.error("[dashboard] datahenting feilet:", e instanceof Error ? e.message : e);
     dbFeil = true;
+    feilMelding = e instanceof Error ? e.message : String(e);
   }
 
   if (dbFeil) {
@@ -58,6 +60,11 @@ export default async function Dashboard({
           <p className="muted" style={{ marginTop: 6 }}>
             Vi klarte ikke å hente dataene dine akkurat nå. Prøv igjen om litt.
           </p>
+          {feilMelding && (
+            <p style={{ marginTop: 12, fontSize: 12, fontFamily: "monospace", color: "var(--accent-ink)", wordBreak: "break-word" }}>
+              Teknisk: {feilMelding}
+            </p>
+          )}
         </div>
       </main>
     );

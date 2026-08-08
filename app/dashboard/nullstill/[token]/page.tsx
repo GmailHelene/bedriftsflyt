@@ -4,6 +4,12 @@ import { settNyttPassord } from "../../actions";
 
 export const metadata = { title: "Nytt passord · Bedriftsflyt" };
 
+const noytralTema = {
+  ["--accent"]: "#3b4a63",
+  ["--accent-ink"]: "color-mix(in srgb, #3b4a63 62%, var(--ink))",
+  ["--accent-soft"]: "color-mix(in srgb, #3b4a63 15%, var(--surface))",
+} as React.CSSProperties;
+
 const inputStyle: React.CSSProperties = {
   padding: "12px 14px",
   border: "1px solid var(--line)",
@@ -25,7 +31,7 @@ export default function Nullstill({
   const gyldig = verifiserReset(params.token) !== null;
 
   return (
-    <main className="wrap">
+    <main className="wrap" style={noytralTema}>
       <div className="brand">
         <span className="mark" aria-hidden="true" />
         <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>Bedriftsflyt</Link>
