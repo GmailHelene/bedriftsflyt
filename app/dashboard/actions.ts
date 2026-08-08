@@ -226,9 +226,24 @@ export async function registrerMedEpost(formData: FormData) {
   const passord = String(formData.get("passord") ?? "");
   const slug = slugify(String(formData.get("slug") ?? "").trim() || navn);
   if (!navn || !epost || passord.length < 8 || !slug) redirect("/dashboard/registrer?feil=felt");
-  const res = await opprettBedriftMedPassord({ navn, sted, slug, epost, passordHash: hashPassord(passord) });
-  if (!res.ok) redirect(`/dashboard/registrer?feil=${res.grunn}`);
-  settSesjon(slug);
+
+  // DB-arbeid i egen try, så en uventet feil gir tydelig melding i stedet for en 500.
+  let utfall: { ok: boolean; grunn?: string };
+  try {
+    utfall = await opprettBedriftMedPassord({ navn, sted, slug, epost, passordHash: hashPassord(passord) });
+  } catch (e) {
+    console.error("[registrer] oppretting feilet:", e instanceof Error ? e.message : e);
+    utfall = { ok: false, grunn: "ugyldig" };
+  }
+  if (!utfall.ok) redirect(`/dashboard/registrer?feil=${utfall.grunn ?? "ugyldig"}`);
+
+  // Sesjonssignering (krever SESSION_SECRET i produksjon).
+  try {
+    settSesjon(slug);
+  } catch (e) {
+    console.error("[registrer] sesjon feilet - SESSION_SECRET satt i prod?", e instanceof Error ? e.message : e);
+    redirect("/dashboard/registrer?feil=sesjon");
+  }
   redirect("/dashboard");
 }
 
@@ -236,9 +251,22 @@ export async function registrerMedEpost(formData: FormData) {
 export async function loggInnMedEpost(formData: FormData) {
   const epost = String(formData.get("epost") ?? "").trim();
   const passord = String(formData.get("passord") ?? "");
-  const funn = await finnBedriftMedEpost(epost);
+
+  let funn: { slug: string; passordHash: string | null } | null = null;
+  try {
+    funn = await finnBedriftMedEpost(epost);
+  } catch (e) {
+    console.error("[login] oppslag feilet:", e instanceof Error ? e.message : e);
+    redirect("/dashboard/login?feil=server");
+  }
   if (!funn || !verifiserPassord(passord, funn.passordHash)) redirect("/dashboard/login?feil=epost");
-  settSesjon(funn.slug);
+
+  try {
+    settSesjon(funn.slug);
+  } catch (e) {
+    console.error("[login] sesjon feilet - SESSION_SECRET satt i prod?", e instanceof Error ? e.message : e);
+    redirect("/dashboard/login?feil=sesjon");
+  }
   redirect("/dashboard");
 }
 

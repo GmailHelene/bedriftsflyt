@@ -18,7 +18,8 @@ const feilTekst: Record<string, string> = {
   felt: "Fyll inn navn, e-post og et passord på minst 8 tegn.",
   slug: "Den nettadressen er opptatt. Velg en annen.",
   epost: "Det finnes allerede en konto med denne e-posten.",
-  ugyldig: "Noe gikk galt. Prøv igjen.",
+  ugyldig: "Noe gikk galt med databasen. Prøv igjen om litt.",
+  sesjon: "Server-konfigurasjon mangler (SESSION_SECRET). Innlogging er midlertidig utilgjengelig.",
 };
 
 export default function Registrer({

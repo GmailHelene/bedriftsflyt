@@ -35,6 +35,14 @@ export default function Login({
         {searchParams.feil === "epost" && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Feil e-post eller passord.</p>
         )}
+        {searchParams.feil === "server" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Databasefeil. Prøv igjen om litt.</p>
+        )}
+        {searchParams.feil === "sesjon" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>
+            Server-konfigurasjon mangler (SESSION_SECRET).
+          </p>
+        )}
         {searchParams.feil === "vipps" && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Vipps Login er ikke konfigurert ennå.</p>
         )}

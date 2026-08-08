@@ -26,14 +26,44 @@ export default async function Dashboard({
   const slug = getSessionSlug();
   if (!slug) redirect("/dashboard/login");
 
-  const b = await hentBedrift(slug);
+  const dbPa = harDatabase();
+  let b: Awaited<ReturnType<typeof hentBedrift>> = null;
+  let bookinger: Awaited<ReturnType<typeof hentBookinger>> = [];
+  let fakturaer: Awaited<ReturnType<typeof hentFakturaer>> = [];
+  let skattAvsatt = 0;
+  let abonnement: Awaited<ReturnType<typeof hentAbonnement>> = { agreementId: null, status: null };
+  let dbFeil = false;
+  try {
+    b = await hentBedrift(slug);
+    if (b) {
+      bookinger = await hentBookinger(slug);
+      fakturaer = await hentFakturaer(slug);
+      skattAvsatt = await hentSkattAvsatt(slug);
+      abonnement = await hentAbonnement(slug);
+    }
+  } catch (e) {
+    console.error("[dashboard] datahenting feilet:", e instanceof Error ? e.message : e);
+    dbFeil = true;
+  }
+
+  if (dbFeil) {
+    return (
+      <main className="wrap">
+        <div className="brand">
+          <span className="mark" aria-hidden="true" />
+          Bedriftsflyt
+        </div>
+        <div className="card" style={{ padding: 20, marginTop: 24 }}>
+          <h1>Midlertidig utilgjengelig</h1>
+          <p className="muted" style={{ marginTop: 6 }}>
+            Vi klarte ikke å hente dataene dine akkurat nå. Prøv igjen om litt.
+          </p>
+        </div>
+      </main>
+    );
+  }
   if (!b) redirect("/dashboard/login");
 
-  const dbPa = harDatabase();
-  const bookinger = await hentBookinger(slug);
-  const fakturaer = await hentFakturaer(slug);
-  const skattAvsatt = await hentSkattAvsatt(slug);
-  const abonnement = await hentAbonnement(slug);
   const erDev = process.env.NODE_ENV !== "production";
 
   return (
