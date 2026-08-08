@@ -8,6 +8,8 @@
   --accent-ink: #9e2f55;
   --accent-soft: #fbe9ef;
   --good: #2e7d5b;
+  --good-soft: #e5f3ec;
+  --raised: #f1ecef;
   --radius: 14px;
 }
 @media (prefers-color-scheme: dark) {
@@ -21,6 +23,8 @@
     --accent-ink: #f1aac2;
     --accent-soft: #2a1922;
     --good: #5fc79a;
+    --good-soft: #16281f;
+    --raised: #251d22;
   }
 }
 * { box-sizing: border-box; }

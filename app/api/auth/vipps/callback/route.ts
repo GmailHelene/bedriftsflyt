@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bytteKode, hentBruker } from "@/lib/vipps-login";
 import { finnBedriftForEier } from "@/lib/repository";
-import { SESSION_COOKIE, VIPPS_SUB_COOKIE, OIDC_STATE_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE, VIPPS_SUB_COOKIE, OIDC_STATE_COOKIE, signerSlug } from "@/lib/auth";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     if (slug) {
       const res = NextResponse.redirect(new URL("/dashboard", req.url), { status: 303 });
-      res.cookies.set(SESSION_COOKIE, slug, { httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: 60 * 60 * 8 });
+      res.cookies.set(SESSION_COOKIE, signerSlug(slug), { httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: 60 * 60 * 8 });
       res.cookies.delete(OIDC_STATE_COOKIE);
       return res;
     }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE, signerSlug } from "@/lib/auth";
 import { hentBedrift } from "@/lib/repository";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.redirect(new URL("/dashboard", req.url), { status: 303 });
-  res.cookies.set(SESSION_COOKIE, slug, {
+  res.cookies.set(SESSION_COOKIE, signerSlug(slug), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

@@ -2,6 +2,7 @@
 // Slik er appen kjørbar både med og uten database (M1→M2-overgang).
 import { getPool, query } from "./db";
 import { getBedrift as getMockBedrift, type Bedrift, type Tjeneste } from "./mockData";
+import { leggTilDager, mandagFor, idagOslo } from "./dato";
 
 type BusinessRow = {
   id: string;
@@ -375,6 +376,173 @@ export async function koblEierTilBedrift(sub: string, slug: string): Promise<boo
     [sub, slug]
   );
   return rows.length > 0;
+}
+
+// Selvbetjent registrering: en ny bedrift opprettes av en Vipps-verifisert eier.
+export async function opprettBedrift(input: {
+  navn: string;
+  sted: string;
+  slug: string;
+  ownerSub: string;
+}): Promise<{ ok: boolean; grunn?: "opptatt" | "ugyldig" }> {
+  if (!getPool()) return { ok: false, grunn: "ugyldig" };
+  try {
+    const rows = await query<{ slug: string }>(
+      `insert into businesses (slug, navn, sted, verifisert, owner_vipps_sub, ledige_tider)
+         values ($1, $2, $3, true, $4, array['09:00','12:00','14:00','17:00'])
+       on conflict (slug) do nothing
+       returning slug`,
+      [input.slug, input.navn, input.sted, input.ownerSub]
+    );
+    return rows.length > 0 ? { ok: true } : { ok: false, grunn: "opptatt" };
+  } catch {
+    return { ok: false, grunn: "ugyldig" };
+  }
+}
+
+// ---- Booking-kalender (ukesvisning) ----
+
+export type KalenderBooking = {
+  dato: string; // YYYY-MM-DD (Oslo)
+  tid: string; // HH:MM
+  tjeneste: string | null;
+  kunde: string | null;
+};
+
+// Henter bookinger for uka som inneholder `anker` (mandag→søndag), i Oslo-tid.
+export async function hentUke(
+  slug: string,
+  anker?: string
+): Promise<{ mandag: string; bookinger: KalenderBooking[] }> {
+  const start = mandagFor(anker && /^\d{4}-\d{2}-\d{2}$/.test(anker) ? anker : idagOslo());
+  if (!getPool()) return { mandag: start, bookinger: [] };
+
+  const slutt = leggTilDager(start, 6);
+  const bookinger = await query<KalenderBooking>(
+    `select (bk.starttid at time zone 'Europe/Oslo')::date::text as dato,
+            to_char(bk.starttid at time zone 'Europe/Oslo', 'HH24:MI') as tid,
+            s.navn as tjeneste,
+            c.navn as kunde
+       from bookings bk
+       join businesses b on b.id = bk.business_id
+       left join services s on s.business_id = bk.business_id and s.id = bk.service_id
+       left join customers c on c.id = bk.customer_id
+      where b.slug = $1
+        and bk.status <> 'kansellert'
+        and (bk.starttid at time zone 'Europe/Oslo')::date between $2::date and $3::date
+      order by bk.starttid`,
+    [slug, start, slutt]
+  );
+  return { mandag: start, bookinger };
+}
+
+// ---- Kundekort ----
+
+export type KundeBooking = { naar: string; tjeneste: string | null };
+export type Kunde = {
+  navn: string;
+  telefon: string | null;
+  epost: string | null;
+  notat: string | null;
+  antall: number;
+  siste: string | null;
+  bookinger: KundeBooking[];
+};
+
+// Kunder opprettes per booking. Vi grupperer på (navn, telefon) slik at en som booker
+// flere ganger vises som én kunde med samlet historikk.
+export async function hentKunder(slug: string): Promise<Kunde[]> {
+  if (!getPool()) return [];
+  const rows = await query<{
+    navn: string;
+    telefon: string | null;
+    epost: string | null;
+    notat: string | null;
+    antall: string;
+    siste: string | null;
+    bookinger: KundeBooking[];
+  }>(
+    `select c.navn,
+            c.telefon,
+            max(c.epost) as epost,
+            max(c.notat) as notat,
+            count(bk.id) as antall,
+            to_char(max(bk.starttid) at time zone 'Europe/Oslo', 'DD.MM.YYYY') as siste,
+            coalesce(
+              json_agg(
+                json_build_object(
+                  'naar', to_char(bk.starttid at time zone 'Europe/Oslo', 'DD.MM.YYYY HH24:MI'),
+                  'tjeneste', s.navn
+                ) order by bk.starttid desc
+              ) filter (where bk.id is not null),
+              '[]'
+            ) as bookinger
+       from customers c
+       join businesses b on b.id = c.business_id
+       left join bookings bk on bk.customer_id = c.id and bk.status <> 'kansellert'
+       left join services s on s.business_id = c.business_id and s.id = bk.service_id
+      where b.slug = $1
+      group by c.navn, c.telefon
+      order by max(bk.starttid) desc nulls last, c.navn
+      limit 200`,
+    [slug]
+  );
+  return rows.map((r) => ({
+    navn: r.navn,
+    telefon: r.telefon,
+    epost: r.epost,
+    notat: r.notat,
+    antall: Number(r.antall),
+    siste: r.siste,
+    bookinger: r.bookinger ?? [],
+  }));
+}
+
+export async function oppdaterKundeNotat(
+  slug: string,
+  navn: string,
+  telefon: string | null,
+  notat: string
+): Promise<boolean> {
+  if (!getPool()) return false;
+  await query(
+    `update customers set notat = $4
+       from businesses b
+      where customers.business_id = b.id
+        and b.slug = $1
+        and customers.navn = $2
+        and coalesce(customers.telefon, '') = coalesce($3, '')`,
+    [slug, navn, telefon, notat]
+  );
+  return true;
+}
+
+// ---- KI-chatbot oppsett ----
+
+export type ChatbotConfig = {
+  apningstider?: string;
+  adressePolicy?: string;
+  avbestilling?: string;
+  tone?: string;
+  faq?: string;
+};
+
+export async function hentChatbotConfig(slug: string): Promise<ChatbotConfig> {
+  if (!getPool()) return {};
+  const rows = await query<{ chatbot_config: ChatbotConfig | null }>(
+    "select chatbot_config from businesses where slug = $1",
+    [slug]
+  );
+  return rows[0]?.chatbot_config ?? {};
+}
+
+export async function settChatbotConfig(slug: string, config: ChatbotConfig): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set chatbot_config = $2::jsonb where slug = $1", [
+    slug,
+    JSON.stringify(config),
+  ]);
+  return true;
 }
 
 // ---- Vipps Recurring: abonnement ----

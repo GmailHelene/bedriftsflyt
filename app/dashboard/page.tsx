@@ -34,6 +34,7 @@ export default async function Dashboard({
   const fakturaer = await hentFakturaer(slug);
   const skattAvsatt = await hentSkattAvsatt(slug);
   const abonnement = await hentAbonnement(slug);
+  const erDev = process.env.NODE_ENV !== "production";
 
   return (
     <main className="wrap">
@@ -49,6 +50,31 @@ export default async function Dashboard({
 
       <h1 style={{ marginTop: 24 }}>Hei, {b.navn} 👋</h1>
       <p className="muted">Din arbeidsflate.</p>
+
+      <nav style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+        {[
+          ["/dashboard/kalender", "Kalender"],
+          ["/dashboard/kunder", "Kunder"],
+          ["/dashboard/komponer", "KI-tekst"],
+          ["/dashboard/oppsett", "KI-chatbot"],
+        ].map(([href, tekst]) => (
+          <Link
+            key={href}
+            href={href}
+            className="btn-ghost"
+            style={{
+              display: "inline-flex",
+              padding: "8px 14px",
+              borderRadius: 999,
+              fontSize: 13.5,
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            {tekst}
+          </Link>
+        ))}
+      </nav>
 
       {!dbPa && (
         <div className="card" style={{ padding: 14, marginTop: 16, borderColor: "var(--accent)" }}>
@@ -248,17 +274,19 @@ export default async function Dashboard({
                     >
                       Betal med Vipps
                     </a>
-                    <form action={markerBetaltTest}>
-                      <input type="hidden" name="reference" value={f.reference} />
-                      <button
-                        type="submit"
-                        className="btn-ghost"
-                        style={{ border: "1px solid var(--line)", background: "none", color: "var(--muted)", cursor: "pointer", padding: "8px 10px", borderRadius: 9, fontSize: 12 }}
-                        title="Dev/test: simulerer betaling og skatt-avsetning uten Vipps"
-                      >
-                        Marker betalt (test)
-                      </button>
-                    </form>
+                    {erDev && (
+                      <form action={markerBetaltTest}>
+                        <input type="hidden" name="reference" value={f.reference} />
+                        <button
+                          type="submit"
+                          className="btn-ghost"
+                          style={{ border: "1px solid var(--line)", background: "none", color: "var(--muted)", cursor: "pointer", padding: "8px 10px", borderRadius: 9, fontSize: 12 }}
+                          title="Dev/test: simulerer betaling og skatt-avsetning uten Vipps"
+                        >
+                          Marker betalt (test)
+                        </button>
+                      </form>
+                    )}
                   </>
                 )}
               </div>
@@ -278,11 +306,15 @@ export default async function Dashboard({
         </p>
         <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
           {abonnement.status === "ACTIVE" ? (
-            <form action={kjorTrekk}>
-              <button type="submit" className="btn" style={{ width: "auto", padding: "10px 16px" }}>
-                Trekk 389 nå (test)
-              </button>
-            </form>
+            erDev ? (
+              <form action={kjorTrekk}>
+                <button type="submit" className="btn" style={{ width: "auto", padding: "10px 16px" }}>
+                  Trekk 389 nå (test)
+                </button>
+              </form>
+            ) : (
+              <span className="muted">Abonnement aktivt ✓</span>
+            )
           ) : (
             <a
               href="/api/vipps/abonnement/start"

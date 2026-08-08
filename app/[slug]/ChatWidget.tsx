@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import type { ChatMelding } from "@/lib/chat";
+import { tekster, type Lang } from "@/lib/i18n";
 
-const FORSLAG = [
-  "Hva koster volumvipper?",
-  "Hvor lang tid tar påfyll?",
-  "Kan jeg avbestille?",
-  "Tar du imot nye kunder?",
-];
-
-export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedriftNavn: string }) {
+export default function ChatWidget({
+  slug,
+  bedriftNavn,
+  lang,
+}: {
+  slug: string;
+  bedriftNavn: string;
+  lang: Lang;
+}) {
+  const tx = tekster(lang);
   const [åpen, setÅpen] = useState(false);
   const [meldinger, setMeldinger] = useState<ChatMelding[]>([]);
   const [input, setInput] = useState("");
@@ -27,18 +30,13 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
       const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ slug, melding, historikk }),
+        body: JSON.stringify({ slug, melding, historikk, lang }),
       });
       const d = await r.json().catch(() => ({}));
-      const svar = r.ok
-        ? d.svar
-        : d.feil ?? "Beklager, noe gikk galt. Kontakt oss gjerne direkte.";
+      const svar = r.ok ? d.svar : d.feil ?? tx.feilChat;
       setMeldinger((m) => [...m, { role: "assistant", content: svar }]);
     } catch {
-      setMeldinger((m) => [
-        ...m,
-        { role: "assistant", content: "Nettverksfeil. Prøv igjen om litt." },
-      ]);
+      setMeldinger((m) => [...m, { role: "assistant", content: tx.nettChat }]);
     } finally {
       setSender(false);
     }
@@ -48,7 +46,7 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
     <>
       <button
         onClick={() => setÅpen((v) => !v)}
-        aria-label={åpen ? "Lukk chat" : "Åpne chat"}
+        aria-label={åpen ? tx.lukkChat : tx.apneChat}
         style={{
           position: "fixed",
           right: 20,
@@ -65,7 +63,7 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
           cursor: "pointer",
         }}
       >
-        {åpen ? "Lukk" : "✦ Spør oss"}
+        {åpen ? tx.lukk : tx.sporOss}
       </button>
 
       {åpen && (
@@ -89,15 +87,13 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
           }}
         >
           <div style={{ background: "linear-gradient(135deg,var(--accent),var(--accent-ink))", color: "#fff", padding: "13px 16px" }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{bedriftNavn.split("·")[0].trim()} · assistent</div>
-            <div style={{ fontSize: 11, opacity: 0.9 }}>Svarer med en gang · KI</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{bedriftNavn.split("·")[0].trim()} · {tx.chatAssistent}</div>
+            <div style={{ fontSize: 11, opacity: 0.9 }}>{tx.chatSub}</div>
           </div>
 
           <div style={{ padding: 14, overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 10, background: "var(--bg)" }}>
             {meldinger.length === 0 && (
-              <div style={bobleStil(false)}>
-                Hei! 👋 Jeg er assistenten her. Spør meg om priser, tider, sted eller avbestilling.
-              </div>
+              <div style={bobleStil(false)}>{tx.chatHilsen}</div>
             )}
             {meldinger.map((m, i) => (
               <div key={i} style={bobleStil(m.role === "user")}>
@@ -109,7 +105,7 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
 
           {meldinger.length === 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7, padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
-              {FORSLAG.map((f) => (
+              {tx.forslag.map((f) => (
                 <button
                   key={f}
                   onClick={() => send(f)}
@@ -140,8 +136,8 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Skriv en melding …"
-              aria-label="Melding"
+              placeholder={tx.skrivMelding}
+              aria-label={tx.skrivMelding}
               style={{
                 flex: 1,
                 border: "1px solid var(--line)",
@@ -159,7 +155,7 @@ export default function ChatWidget({ slug, bedriftNavn }: { slug: string; bedrif
               className="btn"
               style={{ width: "auto", padding: "10px 16px", opacity: sender || !input.trim() ? 0.5 : 1 }}
             >
-              Send
+              {tx.send}
             </button>
           </form>
         </div>

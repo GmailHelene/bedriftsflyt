@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Tjeneste } from "@/lib/mockData";
+import { tekster, type Lang } from "@/lib/i18n";
 
-type Props = { slug: string; bedriftNavn: string; tjenester: Tjeneste[] };
+type Props = { slug: string; bedriftNavn: string; tjenester: Tjeneste[]; lang: Lang };
 
 const inputStyle: React.CSSProperties = {
   padding: "11px 13px",
@@ -29,7 +30,8 @@ function pilleStil(aktiv: boolean): React.CSSProperties {
   };
 }
 
-export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
+export default function BookingClient({ slug, bedriftNavn, tjenester, lang }: Props) {
+  const tx = tekster(lang);
   const [valgt, setValgt] = useState<Tjeneste | null>(null);
   const [dato, setDato] = useState<string | null>(null);
   const [tider, setTider] = useState<string[]>([]);
@@ -51,11 +53,11 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
         d.getDate()
       ).padStart(2, "0")}`;
-      const label = i === 0 ? "I dag" : d.toLocaleDateString("nb-NO", { weekday: "short", day: "numeric", month: "short" });
+      const label = i === 0 ? tx.idag : d.toLocaleDateString(tx.datoLocale, { weekday: "short", day: "numeric", month: "short" });
       out.push({ value, label });
     }
     return out;
-  }, []);
+  }, [tx.idag, tx.datoLocale]);
 
   useEffect(() => {
     if (!valgt || !dato) {
@@ -104,13 +106,13 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
         return;
       }
       const d = await r.json().catch(() => ({}));
-      setFeil(d.feil ?? "Noe gikk galt. Prøv igjen.");
+      setFeil(d.feil ?? tx.feilGenerisk);
       if (r.status === 409) {
         setTid(null);
         setValgt({ ...valgt }); // trigg ny henting av ledige tider
       }
     } catch {
-      setFeil("Nettverksfeil. Prøv igjen.");
+      setFeil(tx.nettverksfeil);
     } finally {
       setSender(false);
     }
@@ -123,10 +125,16 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
         className="card"
         style={{ padding: 16, borderColor: "var(--good)", background: "color-mix(in srgb, var(--good) 8%, transparent)" }}
       >
-        <strong style={{ color: "var(--good)" }}>✓ Booking bekreftet</strong>
+        <strong style={{ color: "var(--good)" }}>{tx.bekreftetTittel}</strong>
         <p className="muted" style={{ marginTop: 8, color: "var(--ink)" }}>
-          {navn.trim()}, du er booket for <b>{valgt.navn.toLowerCase()}</b> {datoLabel} kl {tid} hos {bedriftNavn}.
-          Vi sender en bekreftelse{epost.trim() ? ` til ${epost.trim()}` : ""}.
+          {tx.bekreftet({
+            navn: navn.trim(),
+            tjeneste: valgt.navn,
+            dato: datoLabel,
+            tid,
+            bedrift: bedriftNavn,
+            epost: epost.trim(),
+          })}
         </p>
       </div>
     );
@@ -134,8 +142,8 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
 
   return (
     <div>
-      <h2 style={{ marginTop: 8 }}>Velg behandling</h2>
-      <div role="radiogroup" aria-label="Velg behandling" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <h2 style={{ marginTop: 8 }}>{tx.velgBehandling}</h2>
+      <div role="radiogroup" aria-label={tx.velgBehandling} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {tjenester.map((t) => {
           const aktiv = valgt?.id === t.id;
           return (
@@ -166,7 +174,7 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
                 <span style={{ fontWeight: 600, fontSize: 15 }}>{t.navn}</span>
                 <br />
                 <span className="muted" style={{ fontSize: 12.5 }}>
-                  {t.varighetMin} min
+                  {t.varighetMin} {tx.min}
                 </span>
               </span>
               <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{t.prisKr.toLocaleString("nb-NO")} kr</span>
@@ -177,8 +185,8 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
 
       {valgt && (
         <>
-          <h2 style={{ marginTop: 20 }}>Velg dag</h2>
-          <div role="radiogroup" aria-label="Velg dag" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+          <h2 style={{ marginTop: 20 }}>{tx.velgDag}</h2>
+          <div role="radiogroup" aria-label={tx.velgDag} style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
             {dager.map((d) => (
               <button
                 key={d.value}
@@ -196,15 +204,15 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
 
       {valgt && dato && (
         <>
-          <h2 style={{ marginTop: 20 }}>Velg tid</h2>
+          <h2 style={{ marginTop: 20 }}>{tx.velgTid}</h2>
           {laster ? (
-            <p className="muted">Henter ledige tider …</p>
+            <p className="muted">{tx.henterTider}</p>
           ) : tider.length === 0 ? (
-            <p className="muted">Ingen ledige tider denne dagen. Prøv en annen dag.</p>
+            <p className="muted">{tx.ingenTider}</p>
           ) : (
             <div
               role="radiogroup"
-              aria-label="Velg tid"
+              aria-label={tx.velgTid}
               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 8 }}
             >
               {tider.map((t) => (
@@ -228,23 +236,23 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
 
       {valgt && dato && tid && (
         <>
-          <h2 style={{ marginTop: 20 }}>Dine opplysninger</h2>
+          <h2 style={{ marginTop: 20 }}>{tx.dineOpplysninger}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <label>
-              <span className="muted" style={{ fontSize: 13 }}>Navn *</span>
-              <input value={navn} onChange={(e) => setNavn(e.target.value)} required style={inputStyle} aria-label="Navn" />
+              <span className="muted" style={{ fontSize: 13 }}>{tx.navn} *</span>
+              <input value={navn} onChange={(e) => setNavn(e.target.value)} required style={inputStyle} aria-label={tx.navn} />
             </label>
             <label>
-              <span className="muted" style={{ fontSize: 13 }}>Mobil</span>
-              <input value={telefon} onChange={(e) => setTelefon(e.target.value)} type="tel" style={inputStyle} aria-label="Mobil" />
+              <span className="muted" style={{ fontSize: 13 }}>{tx.mobil}</span>
+              <input value={telefon} onChange={(e) => setTelefon(e.target.value)} type="tel" style={inputStyle} aria-label={tx.mobil} />
             </label>
             <label>
-              <span className="muted" style={{ fontSize: 13 }}>E-post</span>
-              <input value={epost} onChange={(e) => setEpost(e.target.value)} type="email" style={inputStyle} aria-label="E-post" />
+              <span className="muted" style={{ fontSize: 13 }}>{tx.epost}</span>
+              <input value={epost} onChange={(e) => setEpost(e.target.value)} type="email" style={inputStyle} aria-label={tx.epost} />
             </label>
           </div>
           <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>
-            Ingen konto nødvendig. Vi bruker opplysningene kun til denne bookingen.
+            {tx.ingenKonto}
           </p>
         </>
       )}
@@ -257,16 +265,16 @@ export default function BookingClient({ slug, bedriftNavn, tjenester }: Props) {
 
       <button className="btn" style={{ marginTop: 16 }} disabled={!valgt || !dato || !tid || !navn.trim() || sender} onClick={book}>
         {sender
-          ? "Booker …"
+          ? tx.booker
           : !valgt
-          ? "Velg en behandling"
+          ? tx.velgEnBehandling
           : !dato
-          ? "Velg en dag"
+          ? tx.velgEnDag
           : !tid
-          ? "Velg en tid"
+          ? tx.velgEnTid
           : !navn.trim()
-          ? "Fyll inn navn"
-          : `Book ${valgt.navn} · kl ${tid}`}
+          ? tx.fyllNavn
+          : tx.book(valgt.navn, tid)}
       </button>
     </div>
   );

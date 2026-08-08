@@ -1,29 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
-import { svarKunde, harKI } from "@/lib/chat";
+import { komponer, harKI } from "@/lib/compose";
 import { erRateLimited } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
 const schema = z.object({
-  slug: z.string().min(1),
-  melding: z.string().min(1).max(1000),
-  historikk: z
-    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) }))
-    .max(20)
-    .optional(),
-  lang: z.enum(["no", "en"]).optional(),
+  type: z.enum(["instagram", "sms", "anmeldelse", "google"]),
+  kontekst: z.string().max(1000).optional(),
 });
 
 export async function POST(req: NextRequest) {
+  const slug = getSessionSlug();
+  if (!slug) {
+    return NextResponse.json({ feil: "Du må være innlogget." }, { status: 401 });
+  }
   if (!harKI()) {
     return NextResponse.json({ feil: "KI er ikke konfigurert (mangler ANTHROPIC_API_KEY)." }, { status: 503 });
   }
-
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "ukjent";
-  if (await erRateLimited("chat:" + ip)) {
-    return NextResponse.json({ feil: "For mange meldinger. Vent et minutt." }, { status: 429 });
+  if (await erRateLimited("komponer:" + slug)) {
+    return NextResponse.json({ feil: "For mange forespørsler. Vent et minutt." }, { status: 429 });
   }
 
   const body = await req.json().catch(() => null);
@@ -32,15 +30,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ feil: "Ugyldige data." }, { status: 400 });
   }
 
-  const b = await hentBedrift(p.data.slug);
+  const b = await hentBedrift(slug);
   if (!b) {
     return NextResponse.json({ feil: "Fant ikke bedriften." }, { status: 404 });
   }
 
   try {
-    const config = await hentChatbotConfig(p.data.slug);
-    const svar = await svarKunde(b, p.data.melding, p.data.historikk, config, p.data.lang ?? "no");
-    return NextResponse.json({ svar });
+    const cfg = await hentChatbotConfig(slug);
+    const tekst = await komponer(b, p.data.type, p.data.kontekst ?? "", cfg.tone);
+    return NextResponse.json({ tekst });
   } catch {
     return NextResponse.json({ feil: "KI-feil. Prøv igjen om litt." }, { status: 502 });
   }

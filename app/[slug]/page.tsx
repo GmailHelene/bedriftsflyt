@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { hentBedrift } from "@/lib/repository";
+import { parseLang, tekster } from "@/lib/i18n";
 import BookingClient from "./BookingClient";
 import ChatWidget from "./ChatWidget";
 import type { Metadata } from "next";
@@ -11,7 +13,12 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const b = await hentBedrift(params.slug);
+  let b = null;
+  try {
+    b = await hentBedrift(params.slug);
+  } catch {
+    // DB utilgjengelig — standard metadata
+  }
   if (!b) return { title: "Bedriftsflyt" };
   return {
     title: `${b.navn} · Bedriftsflyt`,
@@ -20,8 +27,28 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  const b = await hentBedrift(params.slug);
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { lang?: string };
+}) {
+  const lang = parseLang(searchParams.lang);
+  const t = tekster(lang);
+  let b;
+  try {
+    b = await hentBedrift(params.slug);
+  } catch {
+    return (
+      <main className="wrap">
+        <div className="card" style={{ padding: 20 }}>
+          <h1>Midlertidig utilgjengelig</h1>
+          <p className="muted">Vi klarte ikke å hente siden akkurat nå. Prøv igjen om litt.</p>
+        </div>
+      </main>
+    );
+  }
   if (!b) notFound();
 
   // SEO: LocalBusiness strukturert data
@@ -43,6 +70,42 @@ export default async function Page({ params }: { params: { slug: string } }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            border: "1px solid var(--line)",
+            borderRadius: 999,
+            overflow: "hidden",
+            fontSize: 12.5,
+            fontWeight: 700,
+          }}
+        >
+          <Link
+            href={`/${b.slug}`}
+            style={{
+              padding: "6px 13px",
+              textDecoration: "none",
+              background: lang === "no" ? "var(--accent)" : "transparent",
+              color: lang === "no" ? "#fff" : "var(--muted)",
+            }}
+          >
+            NO
+          </Link>
+          <Link
+            href={`/${b.slug}?lang=en`}
+            style={{
+              padding: "6px 13px",
+              textDecoration: "none",
+              background: lang === "en" ? "var(--accent)" : "transparent",
+              color: lang === "en" ? "#fff" : "var(--muted)",
+            }}
+          >
+            EN
+          </Link>
+        </div>
+      </div>
+
       <div className="card">
         <div className="cover" aria-hidden="true" />
         <div className="phead">
@@ -51,22 +114,22 @@ export default async function Page({ params }: { params: { slug: string } }) {
           </div>
           <h1>
             {b.navn}
-            {b.verifisert && <span className="verified">✓ Verifisert</span>}
+            {b.verifisert && <span className="verified">{t.verifisert}</span>}
           </h1>
           <p className="muted">
             {b.tagline} · {b.sted}
           </p>
           <p className="stars">
-            ★★★★★ <b>{b.rating.toLocaleString("nb-NO")}</b> · {b.antallVurderinger} vurderinger
+            ★★★★★ <b>{b.rating.toLocaleString(t.datoLocale)}</b> · {b.antallVurderinger} {t.vurderinger}
           </p>
         </div>
 
         <div style={{ padding: "0 22px 22px" }}>
-          <BookingClient slug={b.slug} bedriftNavn={b.navn} tjenester={b.tjenester} />
+          <BookingClient slug={b.slug} bedriftNavn={b.navn} tjenester={b.tjenester} lang={lang} />
         </div>
       </div>
 
-      <ChatWidget slug={b.slug} bedriftNavn={b.navn} />
+      <ChatWidget slug={b.slug} bedriftNavn={b.navn} lang={lang} />
     </main>
   );
 }

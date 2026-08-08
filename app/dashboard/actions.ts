@@ -3,15 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSessionSlug, SESSION_COOKIE, VIPPS_SUB_COOKIE } from "@/lib/auth";
+import { getSessionSlug, SESSION_COOKIE, VIPPS_SUB_COOKIE, signerSlug } from "@/lib/auth";
 import {
   oppdaterProfil,
   leggTilTjeneste,
   slettTjeneste,
   opprettFaktura,
   markerFakturaBetalt,
-  koblEierTilBedrift,
+  opprettBedrift,
   hentAbonnement,
+  settChatbotConfig,
+  oppdaterKundeNotat,
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
 
@@ -81,17 +83,29 @@ export async function markerBetaltTest(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-// Vipps Login: kobler den verifiserte Vipps-brukeren til bedriften og logger inn.
-export async function kobleEier(formData: FormData) {
+// Selvbetjent registrering: Vipps-verifisert eier oppretter bedriften sin og logges inn.
+export async function registrerBedrift(formData: FormData) {
   const sub = cookies().get(VIPPS_SUB_COOKIE)?.value;
   if (!sub) redirect("/dashboard/login");
-  const slug = String(formData.get("slug") ?? "").trim();
-  if (!slug) return;
 
-  const ok = await koblEierTilBedrift(sub, slug);
-  if (!ok) redirect("/dashboard/koble?feil=1");
+  const navn = String(formData.get("navn") ?? "").trim();
+  const sted = String(formData.get("sted") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/æ/g, "a")
+    .replace(/å/g, "a")
+    .replace(/ø/g, "o")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
 
-  cookies().set(SESSION_COOKIE, slug, {
+  if (!navn || !slug) redirect("/dashboard/koble?feil=felt");
+
+  const res = await opprettBedrift({ navn, sted, slug, ownerSub: sub });
+  if (!res.ok) redirect(`/dashboard/koble?feil=${res.grunn === "opptatt" ? "slug" : "ugyldig"}`);
+
+  cookies().set(SESSION_COOKIE, signerSlug(slug), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -100,6 +114,33 @@ export async function kobleEier(formData: FormData) {
   });
   cookies().delete(VIPPS_SUB_COOKIE);
   redirect("/dashboard");
+}
+
+// Lagre hva KI-chatboten skal svare kundene (åpningstider, adresse, avbestilling, tone, FAQ).
+export async function lagreOppsett(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settChatbotConfig(slug, {
+    apningstider: String(formData.get("apningstider") ?? "").trim(),
+    adressePolicy: String(formData.get("adresse") ?? "").trim(),
+    avbestilling: String(formData.get("avbestilling") ?? "").trim(),
+    tone: String(formData.get("tone") ?? "").trim(),
+    faq: String(formData.get("faq") ?? "").trim(),
+  });
+  revalidatePath("/dashboard/oppsett");
+  redirect("/dashboard/oppsett?lagret=1");
+}
+
+// Lagre et notat på en kunde (kundekort).
+export async function lagreKundeNotat(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const navn = String(formData.get("navn") ?? "").trim();
+  const telefonRaw = String(formData.get("telefon") ?? "").trim();
+  const notat = String(formData.get("notat") ?? "").trim();
+  if (!navn) return;
+  await oppdaterKundeNotat(slug, navn, telefonRaw || null, notat);
+  revalidatePath("/dashboard/kunder");
 }
 
 // Dev/test: kjør et månedstrekk manuelt (i produksjon gjøres dette av en planlagt jobb).
