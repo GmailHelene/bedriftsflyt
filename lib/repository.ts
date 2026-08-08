@@ -1,7 +1,7 @@
 // Data-lag: bruker Postgres hvis DATABASE_URL er satt, ellers mock-data.
 // Slik er appen kjørbar både med og uten database (M1→M2-overgang).
 import { getPool, query } from "./db";
-import { getBedrift as getMockBedrift, type Bedrift, type Tjeneste } from "./mockData";
+import { getBedrift as getMockBedrift, type Bedrift, type Tjeneste, type Tema } from "./mockData";
 import { leggTilDager, mandagFor, idagOslo } from "./dato";
 
 type BusinessRow = {
@@ -19,6 +19,7 @@ type BusinessRow = {
   anmeldelse_url: string | null;
   depositum_kr: number | null;
   owner_vipps_sub: string | null;
+  tema: Tema | null;
 };
 
 type ServiceRow = {
@@ -33,7 +34,7 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
 
   const rows = await query<BusinessRow>(
     `select id, slug, navn, tagline, sted, rating, antall_vurderinger, ledige_tider,
-            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub
+            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema
        from businesses where slug = $1 limit 1`,
     [slug]
   );
@@ -66,6 +67,7 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
     },
     anmeldelseUrl: b.anmeldelse_url ?? undefined,
     depositumKr: b.depositum_kr ?? 0,
+    tema: b.tema ?? undefined,
   };
 }
 
@@ -380,6 +382,47 @@ export async function settDepositum(slug: string, kr: number): Promise<boolean> 
   if (!getPool()) return false;
   await query("update businesses set depositum_kr = $2 where slug = $1", [slug, Math.max(0, Math.round(kr))]);
   return true;
+}
+
+// ---- Påminnelser ----
+
+export type Paminnelse = {
+  id: string;
+  slug: string;
+  bedriftNavn: string;
+  tjeneste: string | null;
+  epost: string | null;
+  navn: string | null;
+  naar: string; // "DD.MM.YYYY HH:MM" (Oslo)
+};
+
+// Bookinger som starter innen 26 timer og ikke har fått påminnelse ennå.
+// Kjøres daglig av en cron → hver booking får én påminnelse ~dagen før.
+export async function hentBookingerForPaminnelse(): Promise<Paminnelse[]> {
+  if (!getPool()) return [];
+  return query<Paminnelse>(
+    `select bk.id,
+            b.slug,
+            b.navn as "bedriftNavn",
+            s.navn as tjeneste,
+            c.epost,
+            c.navn,
+            to_char(bk.starttid at time zone 'Europe/Oslo', 'DD.MM.YYYY HH24:MI') as naar
+       from bookings bk
+       join businesses b on b.id = bk.business_id
+       left join services s on s.business_id = bk.business_id and s.id = bk.service_id
+       left join customers c on c.id = bk.customer_id
+      where bk.status <> 'kansellert'
+        and coalesce(bk.paminnelse_sendt, false) = false
+        and bk.starttid > now()
+        and bk.starttid <= now() + interval '26 hours'
+      order by bk.starttid`
+  );
+}
+
+export async function markerPaminnelseSendt(ids: string[]): Promise<void> {
+  if (!getPool() || ids.length === 0) return;
+  await query("update bookings set paminnelse_sendt = true where id = any($1::uuid[])", [ids]);
 }
 
 // ---- Faktura + skatt-avsetning (Milepæl 4) ----

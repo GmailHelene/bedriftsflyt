@@ -1,44 +1,14 @@
 import Link from "next/link";
-import {
-  KalenderIkon,
-  KortIkon,
-  ChatIkon,
-  ProsentIkon,
-  SkjoldIkon,
-  MerkelappIkon,
-  StjerneIkon,
-  VerktoyIkon,
-} from "./icons";
+import { KalenderIkon, KortIkon, ChatIkon, ProsentIkon, SkjoldIkon, MerkelappIkon } from "../icons";
+
+export const metadata = {
+  title: "Bedriftsflyt for skjønnhet og velvære",
+  description: "Booking, faktura, betaling med Vipps og en KI som svarer kundene. For vipper, negler, hår, hud og massasje.",
+};
 
 const container: React.CSSProperties = { maxWidth: 1040, margin: "0 auto", padding: "0 20px" };
 
-// Håndverk-kortet får blått tema lokalt (color-mix holder det lesbart i lys/mørk).
-const blaTema = {
-  ["--accent"]: "#1f5f8b",
-  ["--accent-ink"]: "color-mix(in srgb, #1f5f8b 60%, var(--ink))",
-  ["--accent-soft"]: "color-mix(in srgb, #1f5f8b 16%, var(--surface))",
-} as React.CSSProperties;
-
-const bransjer = [
-  {
-    Ikon: StjerneIkon,
-    tittel: "Skjønnhet og velvære",
-    beskrivelse: "Vipper, negler, hår, hud og massasje. Kundene booker selv, du slipper DM-maset.",
-    href: "/skjonnhet",
-    eksempel: "/silje",
-    tema: undefined as React.CSSProperties | undefined,
-  },
-  {
-    Ikon: VerktoyIkon,
-    tittel: "Håndverk og bygg",
-    beskrivelse: "Snekker, montør, maler, elektriker. Befaring, tilbud og faktura på ett sted.",
-    href: "/handverker",
-    eksempel: "/modum-bygg",
-    tema: blaTema,
-  },
-];
-
-export default function Home() {
+export default function Skjonnhet() {
   return (
     <main>
       {/* Nav */}
@@ -48,6 +18,9 @@ export default function Home() {
           Bedriftsflyt
         </div>
         <nav style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
+          <Link href="/silje" className="muted" style={{ fontSize: 14 }}>
+            Se eksempel
+          </Link>
           <Link href="/dashboard/login" className="btn" style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}>
             Logg inn
           </Link>
@@ -55,7 +28,7 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section style={{ ...container, textAlign: "center", padding: "56px 20px 36px" }}>
+      <section style={{ ...container, textAlign: "center", padding: "56px 20px 44px" }}>
         <span
           style={{
             display: "inline-block",
@@ -69,51 +42,62 @@ export default function Home() {
             borderRadius: 999,
           }}
         >
-          For deg som driver alene
+          For skjønnhet og velvære
         </span>
         <h1 style={{ fontSize: "clamp(30px, 6vw, 48px)", lineHeight: 1.1, margin: "18px auto 14px", maxWidth: "16ch" }}>
           Alt du trenger for å drive - på ett sted
         </h1>
-        <p className="muted" style={{ fontSize: "clamp(16px, 2.4vw, 19px)", maxWidth: "54ch", margin: "0 auto" }}>
-          Booking, faktura, betaling med Vipps og en KI som svarer kundene dine. Så slipper du å bruke kveldene på
-          papirarbeid.
+        <p className="muted" style={{ fontSize: "clamp(16px, 2.4vw, 19px)", maxWidth: "52ch", margin: "0 auto" }}>
+          Booking, faktura, betaling med Vipps og en KI som svarer kundene dine. Så slipper du å bruke kveldene på papirarbeid.
         </p>
-      </section>
-
-      {/* Velg bransje */}
-      <section style={{ ...container, padding: "8px 20px 8px" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 20 }}>Hva driver du med?</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          {bransjer.map(({ Ikon, tittel, beskrivelse, href, eksempel, tema }) => (
-            <div
-              key={tittel}
-              className="card"
-              style={{ padding: 26, display: "flex", flexDirection: "column", gap: 10, ...(tema ?? {}) }}
-            >
-              <div style={{ color: "var(--accent-ink)" }}>
-                <Ikon size={30} />
-              </div>
-              <h3 style={{ fontFamily: "Georgia, serif", fontSize: 20, margin: 0 }}>{tittel}</h3>
-              <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55 }}>{beskrivelse}</p>
-              <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: "auto", paddingTop: 10, flexWrap: "wrap" }}>
-                <Link href={href} className="btn" style={{ width: "auto", padding: "12px 20px", textDecoration: "none" }}>
-                  Utforsk →
-                </Link>
-                <Link href={eksempel} className="muted" style={{ fontSize: 14 }}>
-                  Se eksempel →
-                </Link>
-              </div>
-            </div>
-          ))}
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginTop: 26 }}>
+          <Link href="/dashboard/login" className="btn" style={{ width: "auto", padding: "14px 26px", textDecoration: "none" }}>
+            Kom i gang
+          </Link>
+          <Link href="/silje" className="btn btn-ghost" style={{ width: "auto", padding: "14px 26px", textDecoration: "none" }}>
+            Se en ekte profil →
+          </Link>
         </div>
-        <p className="muted" style={{ textAlign: "center", fontSize: 13, marginTop: 18 }}>
+        <p className="muted" style={{ fontSize: 13, marginTop: 14 }}>
           389 kr/mnd · første måned gratis · ingen bindingstid
         </p>
       </section>
 
-      {/* Funksjoner (felles) */}
-      <section style={{ ...container, padding: "44px 20px 8px" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 24 }}>Alt samlet, uansett bransje</h2>
+      {/* Slik funker det */}
+      <section style={{ ...container, padding: "24px 20px 8px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: 24 }}>Slik funker det</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+          {[
+            ["1", "Lag profilen din", "Legg inn tjenester og priser på ti minutter. Du får en delbar lenke og QR-kode."],
+            ["2", "Del lenka - kundene booker selv", "Legg lenka i Instagram-bio eller på Google. Kundene velger tid uten å ringe."],
+            ["3", "Få betalt med Vipps", "Send faktura, kunden betaler med Vipps, og skatten settes av automatisk."],
+          ].map(([n, t, d]) => (
+            <div key={n} className="card" style={{ padding: 22 }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 9,
+                  background: "var(--accent-soft)",
+                  color: "var(--accent-ink)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 800,
+                  fontFamily: "Georgia, serif",
+                }}
+              >
+                {n}
+              </div>
+              <h3 style={{ fontFamily: "Georgia, serif", fontSize: 17, margin: "12px 0 6px" }}>{t}</h3>
+              <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Funksjoner */}
+      <section style={{ ...container, padding: "40px 20px 8px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: 24 }}>Alt samlet</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
           {[
             { Ikon: KalenderIkon, tittel: "Booking", tekst: "Ledige tider beregnes automatisk. Ingen dobbeltbooking." },
@@ -156,8 +140,7 @@ export default function Home() {
             Bedriftsflyt
           </div>
           <nav style={{ marginLeft: "auto", display: "flex", gap: 16, fontSize: 13 }}>
-            <Link href="/skjonnhet" className="muted">Skjønnhet</Link>
-            <Link href="/handverker" className="muted">Håndverk</Link>
+            <Link href="/" className="muted">Andre bransjer</Link>
             <Link href="/vilkar" className="muted">Salgsvilkår</Link>
             <Link href="/personvern" className="muted">Personvern</Link>
           </nav>

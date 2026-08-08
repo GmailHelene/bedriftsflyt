@@ -2,6 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.APP_BASE_URL || "http://localhost:3000";
+  const naa = new Date();
   // Offentlige bedriftsprofiler legges til her når katalogen finnes (fase 2).
-  return [{ url: base, lastModified: new Date() }];
+  return [
+    { url: base, lastModified: naa },
+    { url: `${base}/skjonnhet`, lastModified: naa },
+    { url: `${base}/handverker`, lastModified: naa },
+    { url: `${base}/vilkar`, lastModified: naa },
+    { url: `${base}/personvern`, lastModified: naa },
+  ];
 }

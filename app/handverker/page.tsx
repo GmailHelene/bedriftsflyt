@@ -148,7 +148,7 @@ export default function Handverker() {
             Bedriftsflyt
           </div>
           <nav style={{ marginLeft: "auto", display: "flex", gap: 16, fontSize: 13 }}>
-            <Link href="/" className="muted">Skjønnhet og velvære</Link>
+            <Link href="/skjonnhet" className="muted">Skjønnhet og velvære</Link>
             <Link href="/vilkar" className="muted">Salgsvilkår</Link>
             <Link href="/personvern" className="muted">Personvern</Link>
           </nav>
