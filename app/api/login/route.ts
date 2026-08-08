@@ -6,10 +6,11 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const slug = String(form.get("slug") ?? "").trim();
   const passord = String(form.get("passord") ?? "");
-  const devPassord = process.env.DASHBOARD_DEV_PASSWORD ?? "dev";
+  // Ingen hardkodet fallback: uten DASHBOARD_DEV_PASSWORD er innlogging umulig (fail closed).
+  const devPassord = process.env.DASHBOARD_DEV_PASSWORD;
 
   const bedrift = await hentBedrift(slug);
-  const ok = !!bedrift && passord === devPassord;
+  const ok = !!bedrift && !!devPassord && passord === devPassord;
 
   if (!ok) {
     return NextResponse.redirect(new URL("/dashboard/login?feil=dev", req.url), { status: 303 });
