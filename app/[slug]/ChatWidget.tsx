@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ChatMelding } from "@/lib/chat";
 import { tekster, type Lang } from "@/lib/i18n";
+import { ChatIkon } from "@/app/icons";
 
 export default function ChatWidget({
   slug,
@@ -52,6 +53,9 @@ export default function ChatWidget({
           right: 20,
           bottom: 20,
           zIndex: 40,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 7,
           border: "none",
           background: "var(--accent)",
           color: "#fff",
@@ -63,7 +67,12 @@ export default function ChatWidget({
           cursor: "pointer",
         }}
       >
-        {åpen ? tx.lukk : tx.sporOss}
+        {åpen ? tx.lukk : (
+          <>
+            <ChatIkon size={17} />
+            {tx.sporOss}
+          </>
+        )}
       </button>
 
       {åpen && (

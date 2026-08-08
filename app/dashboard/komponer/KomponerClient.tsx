@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import type { SVGProps } from "react";
+import { KameraIkon, ChatIkon, StjerneIkon, SokIkon } from "@/app/icons";
 
 type KomponerType = "instagram" | "sms" | "anmeldelse" | "google";
 
-const VALG: { type: KomponerType; ikon: string; navn: string; hint: string }[] = [
-  { type: "instagram", ikon: "📸", navn: "Instagram-post", hint: "F.eks. ledige timer denne uka, eller en ny behandling" },
-  { type: "sms", ikon: "💬", navn: "SMS til kunde", hint: "F.eks. påminnelse om time i morgen kl 14" },
-  { type: "anmeldelse", ikon: "⭐", navn: "Svar på anmeldelse", hint: "Lim inn anmeldelsen du vil svare på" },
-  { type: "google", ikon: "🔎", navn: "Google-beskrivelse", hint: "F.eks. hva som gjør deg spesiell" },
+const VALG: { type: KomponerType; Ikon: (p: SVGProps<SVGSVGElement> & { size?: number }) => JSX.Element; navn: string; hint: string }[] = [
+  { type: "instagram", Ikon: KameraIkon, navn: "Instagram-post", hint: "F.eks. ledige timer denne uka, eller en ny behandling" },
+  { type: "sms", Ikon: ChatIkon, navn: "SMS til kunde", hint: "F.eks. påminnelse om time i morgen kl 14" },
+  { type: "anmeldelse", Ikon: StjerneIkon, navn: "Svar på anmeldelse", hint: "Lim inn anmeldelsen du vil svare på" },
+  { type: "google", Ikon: SokIkon, navn: "Google-beskrivelse", hint: "F.eks. hva som gjør deg spesiell" },
 ];
 
 export default function KomponerClient() {
@@ -71,6 +73,7 @@ export default function KomponerClient() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 20 }}>
         {VALG.map((v) => {
           const aktiv = v.type === type;
+          const Ikon = v.Ikon;
           return (
             <button
               key={v.type}
@@ -91,8 +94,10 @@ export default function KomponerClient() {
               }}
               aria-pressed={aktiv}
             >
-              <div style={{ fontSize: 20 }}>{v.ikon}</div>
-              <div style={{ fontWeight: 700, fontSize: 14, marginTop: 4 }}>{v.navn}</div>
+              <div style={{ color: aktiv ? "var(--accent-ink)" : "var(--muted)" }}>
+                <Ikon size={22} />
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{v.navn}</div>
             </button>
           );
         })}

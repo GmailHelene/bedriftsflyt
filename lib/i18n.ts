@@ -79,13 +79,13 @@ const NO: Tekster = {
     `${p.navn}, du er booket for ${p.tjeneste.toLowerCase()} ${p.dato} kl ${p.tid} hos ${p.bedrift}. Vi sender en bekreftelse${
       p.epost ? ` til ${p.epost}` : ""
     }.`,
-  sporOss: "✦ Spør oss",
+  sporOss: "Spør oss",
   lukk: "Lukk",
   apneChat: "Åpne chat",
   lukkChat: "Lukk chat",
   chatSub: "Svarer med en gang · KI",
   chatAssistent: "assistent",
-  chatHilsen: "Hei! 👋 Jeg er assistenten her. Spør meg om priser, tider, sted eller avbestilling.",
+  chatHilsen: "Hei! Jeg er assistenten her. Spør meg om priser, tider, sted eller avbestilling.",
   skrivMelding: "Skriv en melding …",
   send: "Send",
   forslag: ["Hva koster det?", "Hvor lang tid tar det?", "Kan jeg avbestille?", "Tar dere nye kunder?"],
@@ -122,13 +122,13 @@ const EN: Tekster = {
     `${p.navn}, you're booked for ${p.tjeneste.toLowerCase()} on ${p.dato} at ${p.tid} with ${p.bedrift}. We'll send a confirmation${
       p.epost ? ` to ${p.epost}` : ""
     }.`,
-  sporOss: "✦ Ask us",
+  sporOss: "Ask us",
   lukk: "Close",
   apneChat: "Open chat",
   lukkChat: "Close chat",
   chatSub: "Replies instantly · AI",
   chatAssistent: "assistant",
-  chatHilsen: "Hi! 👋 I'm the assistant here. Ask me about prices, times, location or cancellation.",
+  chatHilsen: "Hi! I'm the assistant here. Ask me about prices, times, location or cancellation.",
   skrivMelding: "Type a message …",
   send: "Send",
   forslag: ["What does it cost?", "How long does it take?", "Can I cancel?", "Do you take new customers?"],

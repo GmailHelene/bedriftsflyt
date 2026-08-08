@@ -64,8 +64,20 @@ export default async function Page({
     },
   };
 
+  // Bransjetema: overstyr aksentfargene (color-mix holder det lesbart i lys/mørk).
+  const temaStyle = b.tema
+    ? ({
+        ["--accent"]: b.tema.accent,
+        ["--accent-ink"]: `color-mix(in srgb, ${b.tema.accent} 60%, var(--ink))`,
+        ["--accent-soft"]: `color-mix(in srgb, ${b.tema.accent} 16%, var(--surface))`,
+      } as React.CSSProperties)
+    : undefined;
+  const coverStyle = b.tema
+    ? { background: `linear-gradient(120deg, ${b.tema.coverFra}, ${b.tema.coverTil} 72%)` }
+    : undefined;
+
   return (
-    <main className="wrap">
+    <main className="wrap" style={temaStyle}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -107,7 +119,7 @@ export default async function Page({
       </div>
 
       <div className="card">
-        <div className="cover" aria-hidden="true" />
+        <div className="cover" aria-hidden="true" style={coverStyle} />
         <div className="phead">
           <div className="avatar" aria-hidden="true">
             {b.navn.charAt(0)}

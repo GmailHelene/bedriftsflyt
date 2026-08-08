@@ -7,6 +7,14 @@ export type Tjeneste = {
   varighetMin: number;
 };
 
+// Valgfritt fargetema per bedrift, så en profil kan tilpasses bransjen (ikke alt er rosa).
+// Kun `accent` + cover-farger oppgis; resten utledes tema-trygt med color-mix (virker i lys/mørk).
+export type Tema = {
+  accent: string;
+  coverFra: string;
+  coverTil: string;
+};
+
 export type Bedrift = {
   slug: string;
   navn: string;
@@ -17,6 +25,7 @@ export type Bedrift = {
   antallVurderinger: number;
   tjenester: Tjeneste[];
   ledigeTider: string[];
+  tema?: Tema;
 };
 
 export const bedrifter: Bedrift[] = [
@@ -35,6 +44,23 @@ export const bedrifter: Bedrift[] = [
       { id: "bryn", navn: "Brynsløft", prisKr: 750, varighetMin: 60 },
     ],
     ledigeTider: ["09:00", "12:00", "14:00", "17:00"],
+  },
+  {
+    slug: "modum-bygg",
+    navn: "Modum Bygg & Montering",
+    tagline: "Snekker og montering · fast pris på befaring",
+    sted: "Modum",
+    verifisert: true,
+    rating: 4.8,
+    antallVurderinger: 41,
+    tjenester: [
+      { id: "befaring", navn: "Befaring og pristilbud", prisKr: 0, varighetMin: 45 },
+      { id: "timepris", navn: "Snekkerarbeid – timepris", prisKr: 750, varighetMin: 60 },
+      { id: "kjokken", navn: "Montering av kjøkken", prisKr: 8500, varighetMin: 480 },
+      { id: "listverk", navn: "Listverk og innerdører", prisKr: 2500, varighetMin: 180 },
+    ],
+    ledigeTider: ["08:00", "10:00", "13:00", "15:00"],
+    tema: { accent: "#1f5f8b", coverFra: "#4a90c2", coverTil: "#1c4a6b" },
   },
 ];
 

@@ -48,7 +48,7 @@ export default async function Dashboard({
         </Link>
       </div>
 
-      <h1 style={{ marginTop: 24 }}>Hei, {b.navn} 👋</h1>
+      <h1 style={{ marginTop: 24 }}>Hei, {b.navn}</h1>
       <p className="muted">Din arbeidsflate.</p>
 
       <nav style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
