@@ -5,6 +5,20 @@ import { getPool, query } from "./db";
 let kjort = false;
 
 const ALTERS = [
+  // Base-hardening (speiler schema.sql) - sikrer at live-DB har ALT, ikke bare det db:setup la inn.
+  "create extension if not exists btree_gist",
+  "alter table bookings add column if not exists sluttid timestamptz",
+  "alter table bookings add column if not exists tidsrom tstzrange",
+  "alter table businesses add column if not exists owner_vipps_sub text",
+  "create unique index if not exists uniq_owner_vipps_sub on businesses(owner_vipps_sub) where owner_vipps_sub is not null",
+  "alter table businesses add column if not exists abonnement_agreement_id text",
+  "alter table businesses add column if not exists abonnement_status text",
+  `do $$ begin
+     if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
+       alter table bookings add constraint no_overlapping_bookings
+         exclude using gist (business_id with =, tidsrom with &&) where (status <> 'kansellert');
+     end if;
+   end $$`,
   // Åpningstider per bedrift (styrer booking-kalender + chatbot). dow: 0=søn..6=lør.
   "alter table businesses add column if not exists apningstid_fra text not null default '09:00'",
   "alter table businesses add column if not exists apningstid_til text not null default '17:00'",
@@ -45,15 +59,31 @@ const SEED = [
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'listverk', b.id, 'Listverk og innerdører', 2500, 180 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
 ];
 
-export async function migrer(): Promise<void> {
-  if (kjort || !getPool()) return;
-  kjort = true;
+export type MigreringSteg = { sql: string; ok: boolean; feil?: string };
 
+async function kjorAlle(): Promise<MigreringSteg[]> {
+  const resultater: MigreringSteg[] = [];
   for (const sql of [...ALTERS, ...SEED]) {
     try {
       await query(sql);
+      resultater.push({ sql: sql.slice(0, 70), ok: true });
     } catch (e) {
-      console.error("[migrate] hoppet over:", e instanceof Error ? e.message : e);
+      const feil = e instanceof Error ? e.message : String(e);
+      console.error("[migrate] feilet:", feil);
+      resultater.push({ sql: sql.slice(0, 70), ok: false, feil });
     }
   }
+  return resultater;
+}
+
+export async function migrer(): Promise<void> {
+  if (kjort || !getPool()) return;
+  kjort = true;
+  await kjorAlle();
+}
+
+// Tvangs-kjør migreringen og returner en rapport (brukes av /api/migrer for diagnose + fiks).
+export async function migrerMedRapport(): Promise<MigreringSteg[]> {
+  if (!getPool()) return [{ sql: "getPool", ok: false, feil: "DATABASE_URL ikke satt" }];
+  return kjorAlle();
 }
