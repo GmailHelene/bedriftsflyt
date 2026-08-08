@@ -5,7 +5,7 @@ import DashboardNav from "../DashboardNav";
 import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { harKI } from "@/lib/chat";
-import { lagreOppsett, lagreApningstider, lagreDepositum, lagreVarsel } from "../actions";
+import { lagreOppsett, lagreApningstider, lagreDepositum, lagreVarsel, lagreFakturaOpplysninger } from "../actions";
 
 export const metadata = { title: "Innstillinger · Bedriftsflyt" };
 
@@ -188,6 +188,31 @@ export default async function Oppsett({
         </label>
         <button className="btn" type="submit" style={{ marginTop: 16, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
           Lagre varsling
+        </button>
+      </form>
+
+      {/* Fakturaopplysninger */}
+      <form action={lagreFakturaOpplysninger} className="card" style={{ padding: 20, marginTop: 16, display: "block" }}>
+        <h2>Fakturaopplysninger</h2>
+        <p className="muted" style={{ fontSize: 13, marginTop: 2, maxWidth: "56ch" }}>
+          Vises på fakturaene du sender kundene dine. Org.nr og betalingsinfo trengs for en gyldig faktura.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
+          <label>
+            <span className="muted" style={labelHint}>Organisasjonsnummer</span>
+            <input name="org_nr" defaultValue={b.orgNr ?? ""} placeholder="123 456 789" style={inputStyle} />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14.5 }}>
+            <input type="checkbox" name="mva_registrert" defaultChecked={b.mvaRegistrert} />
+            <span>Jeg er mva-registrert (legger 25 % mva på fakturaene)</span>
+          </label>
+          <label>
+            <span className="muted" style={labelHint}>Betalingsinfo (kontonummer eller Vipps-nr)</span>
+            <input name="betalingsinfo" defaultValue={b.betalingsinfo ?? ""} placeholder="1234.56.78901 eller Vipps 12345" style={inputStyle} />
+          </label>
+        </div>
+        <button className="btn" type="submit" style={{ marginTop: 16, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
+          Lagre fakturaopplysninger
         </button>
       </form>
 

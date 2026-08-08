@@ -40,6 +40,16 @@ const ALTERS = [
   "alter table businesses add column if not exists profilbilde text",
   "alter table businesses add column if not exists galleri jsonb not null default '[]'",
   "alter table businesses add column if not exists merkefarge text",
+  // Fakturaopplysninger per bedrift + fortløpende fakturanummer.
+  "alter table businesses add column if not exists org_nr text",
+  "alter table businesses add column if not exists mva_registrert boolean not null default false",
+  "alter table businesses add column if not exists betalingsinfo text",
+  "alter table businesses add column if not exists neste_fakturanr int not null default 1",
+  // Faktura-felt (nummer, forfall, kjøper, mva).
+  "alter table invoices add column if not exists faktura_nr int",
+  "alter table invoices add column if not exists forfall_dato date",
+  "alter table invoices add column if not exists kjoper_navn text",
+  "alter table invoices add column if not exists mva_ore int not null default 0",
 ];
 
 // Demo-bedrifter så eksempelsidene er ekte bookbare (book → e-post → avbestill).

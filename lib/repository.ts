@@ -24,6 +24,9 @@ type BusinessRow = {
   profilbilde: string | null;
   galleri: string[] | null;
   merkefarge: string | null;
+  org_nr: string | null;
+  mva_registrert: boolean | null;
+  betalingsinfo: string | null;
 };
 
 type ServiceRow = {
@@ -39,7 +42,7 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
   const rows = await query<BusinessRow>(
     `select id, slug, navn, tagline, sted, rating, antall_vurderinger, ledige_tider,
             apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema, varsel_epost,
-            profilbilde, galleri, merkefarge
+            profilbilde, galleri, merkefarge, org_nr, mva_registrert, betalingsinfo
        from businesses where slug = $1 limit 1`,
     [slug]
   );
@@ -77,6 +80,9 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
     profilbilde: b.profilbilde ?? undefined,
     galleri: b.galleri ?? [],
     merkefarge: b.merkefarge ?? undefined,
+    orgNr: b.org_nr ?? undefined,
+    mvaRegistrert: b.mva_registrert ?? false,
+    betalingsinfo: b.betalingsinfo ?? undefined,
   };
 }
 
@@ -504,44 +510,158 @@ export async function markerPaminnelseSendt(ids: string[]): Promise<void> {
 
 export type DashFaktura = {
   id: string;
+  fakturaNr: number | null;
   naar: string;
   beskrivelse: string;
+  kjoper: string | null;
   sumKr: number;
   status: string;
   skattAvsattKr: number;
   reference: string;
 };
 
+// Oppretter faktura med fortløpende nummer (per bedrift), mva hvis bedriften er mva-registrert,
+// og 14 dagers forfall. Transaksjon + FOR UPDATE hindrer at to fakturaer får samme nummer.
 export async function opprettFaktura(
   slug: string,
-  data: { beskrivelse: string; belopKr: number }
+  data: { beskrivelse: string; belopKr: number; kjoperNavn?: string }
+): Promise<boolean> {
+  const pool = getPool();
+  if (!pool) return false;
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const biz = await client.query(
+      "select id, mva_registrert, neste_fakturanr from businesses where slug = $1 for update",
+      [slug]
+    );
+    if (!biz.rows[0]) {
+      await client.query("rollback");
+      return false;
+    }
+    const bid = biz.rows[0].id as string;
+    const mvaReg = biz.rows[0].mva_registrert as boolean;
+    const nr = biz.rows[0].neste_fakturanr as number;
+
+    const nettoOre = Math.round(data.belopKr * 100);
+    const mvaOre = mvaReg ? Math.round(nettoOre * 0.25) : 0;
+    const sumOre = nettoOre + mvaOre;
+    const linjer = JSON.stringify([{ navn: data.beskrivelse, kr: data.belopKr }]);
+
+    await client.query(
+      `insert into invoices (business_id, linjer, sum_ore, mva_ore, status, vipps_ref, faktura_nr, forfall_dato, kjoper_navn)
+       values ($1, $2::jsonb, $3, $4, 'opprettet', 'bf-' || replace(gen_random_uuid()::text, '-', ''), $5,
+               (now() at time zone 'Europe/Oslo')::date + 14, $6)`,
+      [bid, linjer, sumOre, mvaOre, nr, data.kjoperNavn || null]
+    );
+    await client.query("update businesses set neste_fakturanr = $2 where id = $1", [bid, nr + 1]);
+    await client.query("commit");
+    return true;
+  } catch (e) {
+    await client.query("rollback").catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+export async function settFakturaOpplysninger(
+  slug: string,
+  data: { orgNr: string; mvaRegistrert: boolean; betalingsinfo: string }
 ): Promise<boolean> {
   if (!getPool()) return false;
-  const linjer = JSON.stringify([{ navn: data.beskrivelse, kr: data.belopKr }]);
-  const sumOre = Math.round(data.belopKr * 100);
   await query(
-    `insert into invoices (business_id, linjer, sum_ore, status, vipps_ref)
-       select b.id, $2::jsonb, $3, 'opprettet', 'bf-' || replace(gen_random_uuid()::text, '-', '')
-       from businesses b where b.slug = $1`,
-    [slug, linjer, sumOre]
+    "update businesses set org_nr = $2, mva_registrert = $3, betalingsinfo = $4 where slug = $1",
+    [slug, data.orgNr || null, data.mvaRegistrert, data.betalingsinfo || null]
   );
   return true;
+}
+
+export type FakturaDetalj = {
+  id: string;
+  fakturaNr: number | null;
+  dato: string;
+  forfall: string | null;
+  beskrivelse: string;
+  nettoKr: number;
+  mvaKr: number;
+  sumKr: number;
+  status: string;
+  kjoper: string | null;
+  reference: string;
+  bedriftNavn: string;
+  bedriftSted: string;
+  orgNr: string | null;
+  mvaRegistrert: boolean;
+  betalingsinfo: string | null;
+};
+
+export async function hentFakturaDetalj(slug: string, id: string): Promise<FakturaDetalj | null> {
+  if (!getPool()) return null;
+  const rows = await query<{
+    id: string;
+    faktura_nr: number | null;
+    dato: string;
+    forfall: string | null;
+    beskrivelse: string | null;
+    sum_ore: number;
+    mva_ore: number;
+    status: string;
+    kjoper_navn: string | null;
+    vipps_ref: string | null;
+    bedrift_navn: string;
+    bedrift_sted: string | null;
+    org_nr: string | null;
+    mva_registrert: boolean;
+    betalingsinfo: string | null;
+  }>(
+    `select i.id, i.faktura_nr,
+            to_char(i.created_at at time zone 'Europe/Oslo', 'DD.MM.YYYY') as dato,
+            to_char(i.forfall_dato, 'DD.MM.YYYY') as forfall,
+            (i.linjer->0->>'navn') as beskrivelse, i.sum_ore, i.mva_ore, i.status, i.kjoper_navn, i.vipps_ref,
+            b.navn as bedrift_navn, b.sted as bedrift_sted, b.org_nr, b.mva_registrert, b.betalingsinfo
+       from invoices i join businesses b on b.id = i.business_id
+      where b.slug = $1 and i.id = $2 limit 1`,
+    [slug, id]
+  );
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    id: r.id,
+    fakturaNr: r.faktura_nr,
+    dato: r.dato,
+    forfall: r.forfall,
+    beskrivelse: r.beskrivelse ?? "Faktura",
+    nettoKr: (r.sum_ore - r.mva_ore) / 100,
+    mvaKr: r.mva_ore / 100,
+    sumKr: r.sum_ore / 100,
+    status: r.status,
+    kjoper: r.kjoper_navn,
+    reference: r.vipps_ref ?? "",
+    bedriftNavn: r.bedrift_navn,
+    bedriftSted: r.bedrift_sted ?? "",
+    orgNr: r.org_nr,
+    mvaRegistrert: r.mva_registrert,
+    betalingsinfo: r.betalingsinfo,
+  };
 }
 
 export async function hentFakturaer(slug: string): Promise<DashFaktura[]> {
   if (!getPool()) return [];
   const rows = await query<{
     id: string;
+    faktura_nr: number | null;
     naar: string;
     beskrivelse: string | null;
+    kjoper_navn: string | null;
     sum_ore: number;
     status: string;
     skatt_avsatt_ore: number;
     vipps_ref: string | null;
   }>(
-    `select i.id,
+    `select i.id, i.faktura_nr,
             to_char(i.created_at at time zone 'Europe/Oslo', 'DD.MM HH24:MI') as naar,
-            (i.linjer->0->>'navn') as beskrivelse,
+            (i.linjer->0->>'navn') as beskrivelse, i.kjoper_navn,
             i.sum_ore, i.status, i.skatt_avsatt_ore, i.vipps_ref
        from invoices i join businesses b on b.id = i.business_id
       where b.slug = $1
@@ -550,8 +670,10 @@ export async function hentFakturaer(slug: string): Promise<DashFaktura[]> {
   );
   return rows.map((r) => ({
     id: r.id,
+    fakturaNr: r.faktura_nr,
     naar: r.naar,
     beskrivelse: r.beskrivelse ?? "Faktura",
+    kjoper: r.kjoper_navn,
     sumKr: r.sum_ore / 100,
     status: r.status,
     skattAvsattKr: r.skatt_avsatt_ore / 100,
@@ -590,7 +712,7 @@ export async function markerFakturaBetalt(reference: string): Promise<{ ok: bool
   try {
     await client.query("begin");
     const r = await client.query(
-      "select business_id, sum_ore, status from invoices where vipps_ref = $1 for update",
+      "select business_id, sum_ore, mva_ore, status from invoices where vipps_ref = $1 for update",
       [reference]
     );
     const row = r.rows[0];
@@ -602,7 +724,9 @@ export async function markerFakturaBetalt(reference: string): Promise<{ ok: bool
       await client.query("commit");
       return { ok: true }; // allerede behandlet
     }
-    const skatt = Math.round((row.sum_ore as number) * 0.35);
+    // 35 % settes av på nettobeløpet (mva tilhører staten, ikke inntekten).
+    const netto = (row.sum_ore as number) - ((row.mva_ore as number) ?? 0);
+    const skatt = Math.round(netto * 0.35);
     await client.query(
       "update invoices set status = 'betalt', skatt_avsatt_ore = $2 where vipps_ref = $1",
       [reference, skatt]

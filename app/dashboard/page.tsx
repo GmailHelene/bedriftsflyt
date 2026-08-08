@@ -238,18 +238,27 @@ export default async function Dashboard({
         </div>
 
         <form action={nyFaktura} style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "end" }}>
-          <label style={{ flex: "2 1 160px" }}>
-            <span className="muted" style={{ fontSize: 13 }}>Ny faktura</span>
-            <input name="beskrivelse" placeholder="F.eks. Påfyll vipper – Ida" required style={inputStyle} />
+          <label style={{ flex: "2 1 150px" }}>
+            <span className="muted" style={{ fontSize: 13 }}>Beskrivelse</span>
+            <input name="beskrivelse" placeholder="F.eks. Påfyll vipper" required style={inputStyle} />
+          </label>
+          <label style={{ flex: "1 1 120px" }}>
+            <span className="muted" style={{ fontSize: 13 }}>Kunde</span>
+            <input name="kjoper" placeholder="Ida Hansen" style={inputStyle} />
           </label>
           <label style={{ flex: "1 1 90px" }}>
-            <span className="muted" style={{ fontSize: 13 }}>Beløp (kr)</span>
+            <span className="muted" style={{ fontSize: 13 }}>Beløp{b.mvaRegistrert ? " eks. mva" : ""} (kr)</span>
             <input name="belop" type="number" min={1} placeholder="650" required style={inputStyle} />
           </label>
           <button className="btn" type="submit" style={{ width: "auto", padding: "11px 18px" }} disabled={!dbPa}>
             Opprett
           </button>
         </form>
+        {!b.orgNr && (
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>
+            Tips: fyll inn org.nr og betalingsinfo under <Link href="/dashboard/oppsett">Innstillinger</Link> for gyldige fakturaer.
+          </p>
+        )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
           {fakturaer.length === 0 && (
@@ -271,11 +280,18 @@ export default async function Dashboard({
                 }}
               >
                 <span style={{ flex: 1, minWidth: 120 }}>
+                  {f.fakturaNr ? `#${f.fakturaNr} · ` : ""}
                   {f.beskrivelse}
                   <br />
-                  <span className="muted" style={{ fontSize: 12 }}>{f.naar}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    {f.kjoper ? `${f.kjoper} · ` : ""}
+                    {f.naar}
+                  </span>
                 </span>
                 <b style={{ fontVariantNumeric: "tabular-nums" }}>{f.sumKr.toLocaleString("nb-NO")} kr</b>
+                <Link href={`/dashboard/faktura/${f.id}`} className="muted" style={{ fontSize: 13 }}>
+                  Vis / PDF
+                </Link>
                 <span
                   style={{
                     fontSize: 11.5,

@@ -107,6 +107,15 @@ create unique index if not exists uniq_business_epost on businesses (lower(epost
 alter table businesses add column if not exists profilbilde text;
 alter table businesses add column if not exists galleri jsonb not null default '[]';
 alter table businesses add column if not exists merkefarge text;
+-- Fakturaopplysninger + fortløpende nummer.
+alter table businesses add column if not exists org_nr text;
+alter table businesses add column if not exists mva_registrert boolean not null default false;
+alter table businesses add column if not exists betalingsinfo text;
+alter table businesses add column if not exists neste_fakturanr int not null default 1;
+alter table invoices add column if not exists faktura_nr int;
+alter table invoices add column if not exists forfall_dato date;
+alter table invoices add column if not exists kjoper_navn text;
+alter table invoices add column if not exists mva_ore int not null default 0;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
     alter table bookings

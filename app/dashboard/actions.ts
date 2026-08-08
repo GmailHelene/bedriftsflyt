@@ -26,6 +26,7 @@ import {
   leggTilGalleribilde,
   slettGalleribilde,
   settMerkefarge,
+  settFakturaOpplysninger,
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
 import { hashPassord, verifiserPassord } from "@/lib/passord";
@@ -84,9 +85,23 @@ export async function nyFaktura(formData: FormData) {
   if (!slug) redirect("/dashboard/login");
   const beskrivelse = String(formData.get("beskrivelse") ?? "").trim();
   const belopKr = Math.max(0, Number(formData.get("belop") ?? 0));
+  const kjoperNavn = String(formData.get("kjoper") ?? "").trim();
   if (!beskrivelse || belopKr <= 0) return;
-  await opprettFaktura(slug, { beskrivelse, belopKr });
+  await opprettFaktura(slug, { beskrivelse, belopKr, kjoperNavn });
   revalidatePath("/dashboard");
+}
+
+// Fakturaopplysninger for bedriften (org.nr, mva-status, betalingsinfo).
+export async function lagreFakturaOpplysninger(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settFakturaOpplysninger(slug, {
+    orgNr: String(formData.get("org_nr") ?? "").trim(),
+    mvaRegistrert: formData.get("mva_registrert") === "on",
+    betalingsinfo: String(formData.get("betalingsinfo") ?? "").trim(),
+  });
+  revalidatePath("/dashboard/oppsett");
+  redirect("/dashboard/oppsett?lagret=faktura");
 }
 
 // Dev/test-snarvei for å se skatt-avsetningen uten live Vipps. I produksjon skjer dette via webhook.

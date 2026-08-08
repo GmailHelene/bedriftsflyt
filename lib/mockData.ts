@@ -38,6 +38,9 @@ export type Bedrift = {
   profilbilde?: string; // base64 data-URI
   galleri?: string[]; // base64 data-URI-er
   merkefarge?: string; // hex, f.eks. "#c0466e"
+  orgNr?: string;
+  mvaRegistrert?: boolean;
+  betalingsinfo?: string;
   tema?: Tema;
 };
 

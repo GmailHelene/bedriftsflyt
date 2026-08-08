@@ -62,3 +62,9 @@ h2 { font-family: Georgia, serif; font-size: 18px; margin: 0 0 8px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; padding: 14px 18px; border-radius: 12px; cursor: pointer; width: 100%; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+@media print {
+  .noprint { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; border: none; }
+}
