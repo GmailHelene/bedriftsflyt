@@ -3,6 +3,7 @@ import { z } from "zod";
 import { opprettBooking, hentBedrift } from "@/lib/repository";
 import { sendEpost } from "@/lib/email";
 import { erRateLimited } from "@/lib/ratelimit";
+import { signerBooking } from "@/lib/token";
 
 const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string));
 
@@ -47,16 +48,22 @@ export async function POST(req: NextRequest) {
         const tjeneste = bedrift?.tjenester.find((t) => t.id === p.service)?.navn ?? "Timen din";
         const bedriftNavn = bedrift?.navn ?? "";
         const naar = `${p.dato} kl. ${p.tid}`;
-        const hosTekst = bedriftNavn ? ` hos ${esc(bedriftNavn)}` : "";
+        const base = process.env.APP_BASE_URL || new URL(req.url).origin;
+        const avbestillLenke = `${base}/avbestill/${signerBooking(res.id)}`;
+        const anmeldLinje =
+          bedrift?.anmeldelseUrl
+            ? `<p style="color:#666">Etter timen: gi oss gjerne en vurdering: <a href="${esc(bedrift.anmeldelseUrl)}">${esc(bedrift.anmeldelseUrl)}</a></p>`
+            : "";
         const html =
           `<p>Hei ${esc(p.navn)},</p>` +
           `<p>Timen din er bekreftet${bedriftNavn ? ` hos <strong>${esc(bedriftNavn)}</strong>` : ""}:</p>` +
           `<p><strong>${esc(tjeneste)}</strong><br>${esc(naar)}</p>` +
-          `<p>Trenger du å endre eller avlyse, ta kontakt${hosTekst} direkte.</p>` +
+          `<p>Trenger du å avlyse? <a href="${avbestillLenke}">Avbestill timen her</a>.</p>` +
+          anmeldLinje +
           `<p>Vi sees!</p>`;
         const tekst =
           `Hei ${p.navn},\n\nTimen din er bekreftet${bedriftNavn ? ` hos ${bedriftNavn}` : ""}:\n` +
-          `${tjeneste}\n${naar}\n\nTrenger du å endre eller avlyse, ta kontakt${bedriftNavn ? ` med ${bedriftNavn}` : ""} direkte.\n\nVi sees!`;
+          `${tjeneste}\n${naar}\n\nTrenger du å avlyse? ${avbestillLenke}\n\nVi sees!`;
         await sendEpost({ til: p.epost, emne: `Bekreftet: ${tjeneste} ${naar}`, html, tekst });
       } catch (e) {
         console.error("[booking] kunne ikke sende bekreftelse:", e instanceof Error ? e.message : e);
@@ -66,6 +73,8 @@ export async function POST(req: NextRequest) {
   }
   if (res.grunn === "opptatt")
     return NextResponse.json({ feil: "Tiden ble nettopp booket. Velg en annen." }, { status: 409 });
+  if (res.grunn === "stengt")
+    return NextResponse.json({ feil: "Tidspunktet er utenfor åpningstidene. Velg en annen tid." }, { status: 409 });
   if (res.grunn === "ingen_db")
     return NextResponse.json({ feil: "Booking krever database (demo lagrer ikke)." }, { status: 503 });
   return NextResponse.json({ feil: "Ugyldig tjeneste eller bedrift." }, { status: 400 });

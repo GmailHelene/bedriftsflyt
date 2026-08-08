@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { Bedrift } from "./mockData";
 import type { ChatbotConfig } from "./repository";
 import type { Lang } from "./i18n";
+import { formaterApningstider } from "./dato";
 
 export function harKI(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
@@ -15,7 +16,8 @@ function systemPrompt(b: Bedrift, c: ChatbotConfig, sprak: Lang): string {
     .map((t) => `- ${t.navn}: ${t.prisKr.toLocaleString("nb-NO")} kr, ${t.varighetMin} min`)
     .join("\n");
   const kontakt = b.navn.split("·")[0].trim();
-  const apningstider = c.apningstider?.trim() || "mandag–lørdag 09–17 (søndag stengt)";
+  // Åpningstidene kommer fra bedriftens strukturerte innstilling (samme som booking-kalenderen).
+  const apningstider = formaterApningstider(b.apningstider);
   const adresse = c.adressePolicy?.trim() || "sendes på SMS dagen før timen";
   const avbestilling = c.avbestilling?.trim() || "gratis frem til 24 timer før timen";
   const tone = c.tone?.trim() || "vennlig og uformell";

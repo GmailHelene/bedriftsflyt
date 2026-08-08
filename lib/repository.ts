@@ -10,10 +10,15 @@ type BusinessRow = {
   navn: string;
   tagline: string | null;
   sted: string | null;
-  verifisert: boolean;
   rating: string;
   antall_vurderinger: number;
   ledige_tider: string[] | null;
+  apningstid_fra: string | null;
+  apningstid_til: string | null;
+  apnings_dager: number[] | null;
+  anmeldelse_url: string | null;
+  depositum_kr: number | null;
+  owner_vipps_sub: string | null;
 };
 
 type ServiceRow = {
@@ -27,12 +32,13 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
   if (!getPool()) return getMockBedrift(slug);
 
   const rows = await query<BusinessRow>(
-    `select id, slug, navn, tagline, sted, verifisert, rating, antall_vurderinger, ledige_tider
+    `select id, slug, navn, tagline, sted, rating, antall_vurderinger, ledige_tider,
+            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub
        from businesses where slug = $1 limit 1`,
     [slug]
   );
   const b = rows[0];
-  if (!b) return null;
+  if (!b) return getMockBedrift(slug); // eksempelprofiler (silje, modum-bygg) virker selv med DB tilkoblet
 
   const services = await query<ServiceRow>(
     `select id, navn, pris_kr, varighet_min
@@ -45,13 +51,21 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
     navn: b.navn,
     tagline: b.tagline ?? "",
     sted: b.sted ?? "",
-    verifisert: b.verifisert,
+    // «Verifisert» = faktisk koblet til en Vipps-verifisert (BankID) eier.
+    verifisert: b.owner_vipps_sub != null,
     rating: Number(b.rating),
     antallVurderinger: b.antall_vurderinger,
     tjenester: services.map(
       (s): Tjeneste => ({ id: s.id, navn: s.navn, prisKr: s.pris_kr, varighetMin: s.varighet_min })
     ),
     ledigeTider: b.ledige_tider ?? [],
+    apningstider: {
+      fra: b.apningstid_fra ?? "09:00",
+      til: b.apningstid_til ?? "17:00",
+      dager: b.apnings_dager ?? [1, 2, 3, 4, 5, 6],
+    },
+    anmeldelseUrl: b.anmeldelse_url ?? undefined,
+    depositumKr: b.depositum_kr ?? 0,
   };
 }
 
@@ -97,11 +111,13 @@ export async function slettTjeneste(slug: string, id: string): Promise<boolean> 
 
 // Åpningstider (MVP: fast 09–17, man–lør). Gjøres per-bedrift konfigurerbart senere.
 // Postgres håndterer Europe/Oslo-konvertering (sommer-/vintertid) via "at time zone".
+// Åpningstidene (fra/til/dager) hentes per bedrift, så booking-kalenderen matcher det
+// bedriften faktisk har satt (samme kilde som chatboten bruker). dow: 0=søn..6=lør.
 const LEDIGE_TIDER_SQL = `
   select to_char(g, 'HH24:MI') as tid
-  from generate_series($1::date + time '09:00', $1::date + time '17:00', interval '30 min') as g
-  where extract(dow from g) <> 0                                   -- ikke søndag
-    and (g + make_interval(mins => $3::int)) <= ($1::date + time '17:00')
+  from generate_series($1::date + $4::time, $1::date + $5::time, interval '30 min') as g
+  where extract(dow from g) = any($6::int[])                        -- kun åpne dager
+    and (g + make_interval(mins => $3::int)) <= ($1::date + $5::time)
     and (g at time zone 'Europe/Oslo') > now()                      -- ikke i fortid
     and not exists (
       select 1 from bookings bk
@@ -120,14 +136,24 @@ export async function hentLedigeTider(slug: string, serviceId: string, dato: str
     const b = getMockBedrift(slug); // uten DB: vis eksempel-tider (demo)
     return b ? b.ledigeTider : [];
   }
-  const biz = await query<{ id: string }>("select id from businesses where slug = $1", [slug]);
+  const biz = await query<{ id: string; apningstid_fra: string | null; apningstid_til: string | null; apnings_dager: number[] | null }>(
+    "select id, apningstid_fra, apningstid_til, apnings_dager from businesses where slug = $1",
+    [slug]
+  );
   if (!biz[0]) return [];
   const svc = await query<{ varighet_min: number }>(
     "select varighet_min from services where business_id = $1 and id = $2 and aktiv = true",
     [biz[0].id, serviceId]
   );
   if (!svc[0]) return [];
-  const rows = await query<{ tid: string }>(LEDIGE_TIDER_SQL, [dato, biz[0].id, svc[0].varighet_min]);
+  const rows = await query<{ tid: string }>(LEDIGE_TIDER_SQL, [
+    dato,
+    biz[0].id,
+    svc[0].varighet_min,
+    biz[0].apningstid_fra ?? "09:00",
+    biz[0].apningstid_til ?? "17:00",
+    biz[0].apnings_dager ?? [1, 2, 3, 4, 5, 6],
+  ]);
   return rows.map((r) => r.tid);
 }
 
@@ -174,8 +200,13 @@ export async function hentBookinger(slug: string): Promise<DashBooking[]> {
 }
 
 export type BookingResultat =
-  | { ok: true }
-  | { ok: false; grunn: "ingen_db" | "ugyldig" | "opptatt" };
+  | { ok: true; id: string }
+  | { ok: false; grunn: "ingen_db" | "ugyldig" | "opptatt" | "stengt" };
+
+function tilMinutter(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
 
 export async function opprettBooking(input: {
   slug: string;
@@ -191,9 +222,15 @@ export async function opprettBooking(input: {
 
   const client = await pool.connect();
   try {
-    const biz = await client.query("select id from businesses where slug = $1", [input.slug]);
+    const biz = await client.query(
+      "select id, apningstid_fra, apningstid_til, apnings_dager from businesses where slug = $1",
+      [input.slug]
+    );
     if (!biz.rows[0]) return { ok: false, grunn: "ugyldig" };
     const businessId = biz.rows[0].id as string;
+    const fra = (biz.rows[0].apningstid_fra as string) ?? "09:00";
+    const til = (biz.rows[0].apningstid_til as string) ?? "17:00";
+    const dager = (biz.rows[0].apnings_dager as number[]) ?? [1, 2, 3, 4, 5, 6];
 
     const svc = await client.query(
       "select varighet_min from services where business_id = $1 and id = $2 and aktiv = true",
@@ -202,6 +239,15 @@ export async function opprettBooking(input: {
     if (!svc.rows[0]) return { ok: false, grunn: "ugyldig" };
     const varighet = svc.rows[0].varighet_min as number;
 
+    // Server-side sjekk: tiden må være innenfor åpningstidene (frontenden viser bare gyldige tider,
+    // men et direkte API-kall kan prøve seg utenom).
+    const [yy, mm, dd] = input.dato.split("-").map(Number);
+    const dow = new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay();
+    const start = tilMinutter(input.tid);
+    if (!dager.includes(dow) || start < tilMinutter(fra) || start + varighet > tilMinutter(til)) {
+      return { ok: false, grunn: "stengt" };
+    }
+
     const lokal = `${input.dato} ${input.tid}`; // naiv Oslo-lokal tid
 
     await client.query("begin");
@@ -209,7 +255,7 @@ export async function opprettBooking(input: {
       "insert into customers (business_id, navn, telefon, epost) values ($1, $2, $3, $4) returning id",
       [businessId, input.navn, input.telefon ?? null, input.epost ?? null]
     );
-    await client.query(
+    const bk = await client.query(
       `insert into bookings (business_id, service_id, customer_id, starttid, sluttid, tidsrom)
        values (
          $1, $2, $3,
@@ -219,11 +265,11 @@ export async function opprettBooking(input: {
            ($4::timestamp at time zone 'Europe/Oslo'),
            (($4::timestamp + make_interval(mins => $5::int)) at time zone 'Europe/Oslo')
          )
-       )`,
+       ) returning id`,
       [businessId, input.serviceId, cust.rows[0].id, lokal, varighet]
     );
     await client.query("commit");
-    return { ok: true };
+    return { ok: true, id: bk.rows[0].id as string };
   } catch (e: unknown) {
     await client.query("rollback").catch(() => {});
     // 23P01 = exclusion_violation → tiden overlapper en eksisterende booking
@@ -234,6 +280,106 @@ export async function opprettBooking(input: {
   } finally {
     client.release();
   }
+}
+
+// ---- Avbestilling ----
+
+export type AvbestillingInfo = {
+  id: string;
+  slug: string;
+  bedriftNavn: string;
+  tjeneste: string | null;
+  naar: string; // "DD.MM.YYYY HH:MM" (Oslo)
+  status: string;
+  fortid: boolean;
+};
+
+export async function hentBookingForAvbestilling(id: string): Promise<AvbestillingInfo | null> {
+  if (!getPool()) return null;
+  const rows = await query<{
+    id: string;
+    slug: string;
+    bedrift_navn: string;
+    tjeneste: string | null;
+    naar: string;
+    status: string;
+    fortid: boolean;
+  }>(
+    `select bk.id,
+            b.slug,
+            b.navn as bedrift_navn,
+            s.navn as tjeneste,
+            to_char(bk.starttid at time zone 'Europe/Oslo', 'DD.MM.YYYY HH24:MI') as naar,
+            bk.status,
+            (bk.starttid < now()) as fortid
+       from bookings bk
+       join businesses b on b.id = bk.business_id
+       left join services s on s.business_id = bk.business_id and s.id = bk.service_id
+      where bk.id = $1
+      limit 1`,
+    [id]
+  );
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    id: r.id,
+    slug: r.slug,
+    bedriftNavn: r.bedrift_navn,
+    tjeneste: r.tjeneste,
+    naar: r.naar,
+    status: r.status,
+    fortid: r.fortid,
+  };
+}
+
+// Kunde avbestiller via signert lenke. Kun fremtidige, ikke-kansellerte timer.
+export async function kansellerBooking(id: string): Promise<boolean> {
+  if (!getPool()) return false;
+  const rows = await query<{ id: string }>(
+    "update bookings set status = 'kansellert' where id = $1 and status <> 'kansellert' and starttid > now() returning id",
+    [id]
+  );
+  return rows.length > 0;
+}
+
+// Bedriften avbestiller fra dashbordet (kun egne bookinger).
+export async function kansellerBookingForBedrift(slug: string, id: string): Promise<boolean> {
+  if (!getPool()) return false;
+  const rows = await query<{ id: string }>(
+    `update bookings set status = 'kansellert'
+       from businesses b
+      where bookings.id = $2 and bookings.business_id = b.id and b.slug = $1
+        and bookings.status <> 'kansellert'
+      returning bookings.id`,
+    [slug, id]
+  );
+  return rows.length > 0;
+}
+
+// ---- Innstillinger (åpningstider, anmeldelseslenke, depositum) ----
+
+export async function settApningstider(
+  slug: string,
+  data: { fra: string; til: string; dager: number[] }
+): Promise<boolean> {
+  if (!getPool()) return false;
+  await query(
+    "update businesses set apningstid_fra = $2, apningstid_til = $3, apnings_dager = $4 where slug = $1",
+    [slug, data.fra, data.til, data.dager]
+  );
+  return true;
+}
+
+export async function settAnmeldelseUrl(slug: string, url: string): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set anmeldelse_url = $2 where slug = $1", [slug, url || null]);
+  return true;
+}
+
+export async function settDepositum(slug: string, kr: number): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set depositum_kr = $2 where slug = $1", [slug, Math.max(0, Math.round(kr))]);
+  return true;
 }
 
 // ---- Faktura + skatt-avsetning (Milepæl 4) ----
@@ -403,6 +549,7 @@ export async function opprettBedrift(input: {
 // ---- Booking-kalender (ukesvisning) ----
 
 export type KalenderBooking = {
+  id: string;
   dato: string; // YYYY-MM-DD (Oslo)
   tid: string; // HH:MM
   tjeneste: string | null;
@@ -419,7 +566,8 @@ export async function hentUke(
 
   const slutt = leggTilDager(start, 6);
   const bookinger = await query<KalenderBooking>(
-    `select (bk.starttid at time zone 'Europe/Oslo')::date::text as dato,
+    `select bk.id,
+            (bk.starttid at time zone 'Europe/Oslo')::date::text as dato,
             to_char(bk.starttid at time zone 'Europe/Oslo', 'HH24:MI') as tid,
             s.navn as tjeneste,
             c.navn as kunde

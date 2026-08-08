@@ -86,6 +86,13 @@ create unique index if not exists uniq_owner_vipps_sub on businesses(owner_vipps
 -- Vipps Recurring: abonnementsavtale (389/mnd).
 alter table businesses add column if not exists abonnement_agreement_id text;
 alter table businesses add column if not exists abonnement_status text;
+-- Åpningstider per bedrift (styrer booking-kalender + chatbot). dow: 0=søn..6=lør.
+alter table businesses add column if not exists apningstid_fra text not null default '09:00';
+alter table businesses add column if not exists apningstid_til text not null default '17:00';
+alter table businesses add column if not exists apnings_dager int[] not null default '{1,2,3,4,5,6}';
+-- Google-/anmeldelseslenke og valgfritt depositum ved booking.
+alter table businesses add column if not exists anmeldelse_url text;
+alter table businesses add column if not exists depositum_kr int not null default 0;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
     alter table bookings

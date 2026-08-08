@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
-import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk } from "./actions";
+import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash } from "./actions";
 
 export const metadata = { title: "Dashbord · Bedriftsflyt" };
 
@@ -56,7 +56,8 @@ export default async function Dashboard({
           ["/dashboard/kalender", "Kalender"],
           ["/dashboard/kunder", "Kunder"],
           ["/dashboard/komponer", "KI-tekst"],
-          ["/dashboard/oppsett", "KI-chatbot"],
+          ["/dashboard/synlighet", "Synlighet"],
+          ["/dashboard/oppsett", "Innstillinger"],
         ].map(([href, tekst]) => (
           <Link
             key={href}
@@ -200,6 +201,24 @@ export default async function Dashboard({
                     {bk.kundeTelefon ? ` · ${bk.kundeTelefon}` : ""}
                   </span>
                 </span>
+                <form action={kansellerBookingDash}>
+                  <input type="hidden" name="id" value={bk.id} />
+                  <button
+                    type="submit"
+                    style={{
+                      border: "1px solid var(--line)",
+                      background: "none",
+                      color: "var(--muted)",
+                      cursor: "pointer",
+                      padding: "6px 11px",
+                      borderRadius: 9,
+                      fontSize: 12.5,
+                    }}
+                    aria-label={`Avlys ${bk.tjeneste}`}
+                  >
+                    Avlys
+                  </button>
+                </form>
               </div>
             ))}
           </div>

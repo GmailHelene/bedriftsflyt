@@ -15,6 +15,12 @@ export type Tema = {
   coverTil: string;
 };
 
+export type Apningstider = {
+  fra: string; // "HH:MM"
+  til: string; // "HH:MM"
+  dager: number[]; // Postgres dow: 0=søn .. 6=lør
+};
+
 export type Bedrift = {
   slug: string;
   navn: string;
@@ -25,8 +31,13 @@ export type Bedrift = {
   antallVurderinger: number;
   tjenester: Tjeneste[];
   ledigeTider: string[];
+  apningstider: Apningstider;
+  anmeldelseUrl?: string;
+  depositumKr?: number;
   tema?: Tema;
 };
+
+export const STANDARD_APNINGSTIDER: Apningstider = { fra: "09:00", til: "17:00", dager: [1, 2, 3, 4, 5, 6] };
 
 export const bedrifter: Bedrift[] = [
   {
@@ -44,6 +55,7 @@ export const bedrifter: Bedrift[] = [
       { id: "bryn", navn: "Brynsløft", prisKr: 750, varighetMin: 60 },
     ],
     ledigeTider: ["09:00", "12:00", "14:00", "17:00"],
+    apningstider: { fra: "09:00", til: "17:00", dager: [1, 2, 3, 4, 5, 6] },
   },
   {
     slug: "modum-bygg",
@@ -60,6 +72,7 @@ export const bedrifter: Bedrift[] = [
       { id: "listverk", navn: "Listverk og innerdører", prisKr: 2500, varighetMin: 180 },
     ],
     ledigeTider: ["08:00", "10:00", "13:00", "15:00"],
+    apningstider: { fra: "08:00", til: "16:00", dager: [1, 2, 3, 4, 5] },
     tema: { accent: "#1f5f8b", coverFra: "#4a90c2", coverTil: "#1c4a6b" },
   },
 ];

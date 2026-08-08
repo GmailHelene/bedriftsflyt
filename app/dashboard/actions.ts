@@ -14,6 +14,10 @@ import {
   hentAbonnement,
   settChatbotConfig,
   oppdaterKundeNotat,
+  settApningstider,
+  settDepositum,
+  settAnmeldelseUrl,
+  kansellerBookingForBedrift,
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
 
@@ -121,7 +125,6 @@ export async function lagreOppsett(formData: FormData) {
   const slug = getSessionSlug();
   if (!slug) redirect("/dashboard/login");
   await settChatbotConfig(slug, {
-    apningstider: String(formData.get("apningstider") ?? "").trim(),
     adressePolicy: String(formData.get("adresse") ?? "").trim(),
     avbestilling: String(formData.get("avbestilling") ?? "").trim(),
     tone: String(formData.get("tone") ?? "").trim(),
@@ -129,6 +132,52 @@ export async function lagreOppsett(formData: FormData) {
   });
   revalidatePath("/dashboard/oppsett");
   redirect("/dashboard/oppsett?lagret=1");
+}
+
+// Åpningstider (styrer både booking-kalenderen og hva chatboten svarer).
+export async function lagreApningstider(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const fra = String(formData.get("fra") ?? "09:00");
+  const til = String(formData.get("til") ?? "17:00");
+  const dager = formData
+    .getAll("dager")
+    .map((d) => Number(d))
+    .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6);
+  await settApningstider(slug, { fra, til, dager });
+  revalidatePath("/dashboard/oppsett");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/oppsett?lagret=tider");
+}
+
+// Valgfritt depositum ved booking (aktiveres når Vipps er live).
+export async function lagreDepositum(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settDepositum(slug, Math.max(0, Number(formData.get("depositum") ?? 0)));
+  revalidatePath("/dashboard/oppsett");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/oppsett?lagret=depositum");
+}
+
+// Google-/anmeldelseslenke (synlighet-siden).
+export async function lagreAnmeldelse(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settAnmeldelseUrl(slug, String(formData.get("url") ?? "").trim());
+  revalidatePath("/dashboard/synlighet");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/synlighet?lagret=1");
+}
+
+// Bedriften avbestiller en booking fra dashbordet/kalenderen.
+export async function kansellerBookingDash(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const id = String(formData.get("id") ?? "");
+  if (id) await kansellerBookingForBedrift(slug, id);
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/kalender");
 }
 
 // Lagre et notat på en kunde (kundekort).

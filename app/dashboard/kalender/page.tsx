@@ -4,6 +4,7 @@ import { getSessionSlug } from "@/lib/auth";
 import { hentUke } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { leggTilDager, ukedagNavn, visDato, idagOslo } from "@/lib/dato";
+import { kansellerBookingDash } from "../actions";
 
 export const metadata = { title: "Kalender · Bedriftsflyt" };
 
@@ -143,6 +144,24 @@ export default async function Kalender({
                         <br />
                         <span className="muted" style={{ fontSize: 12.5 }}>{b.kunde ?? "Kunde"}</span>
                       </span>
+                      <form action={kansellerBookingDash}>
+                        <input type="hidden" name="id" value={b.id} />
+                        <button
+                          type="submit"
+                          style={{
+                            border: "1px solid var(--line)",
+                            background: "none",
+                            color: "var(--muted)",
+                            cursor: "pointer",
+                            padding: "5px 10px",
+                            borderRadius: 8,
+                            fontSize: 12,
+                          }}
+                          aria-label="Avlys booking"
+                        >
+                          Avlys
+                        </button>
+                      </form>
                     </div>
                   ))}
                 </div>

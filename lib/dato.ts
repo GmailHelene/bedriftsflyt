@@ -28,3 +28,18 @@ export function visDato(iso: string): string {
 export function idagOslo(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Oslo" }).format(new Date());
 }
+
+export const UKEDAGER_KORT = ["søn", "man", "tir", "ons", "tor", "fre", "lør"];
+const UKEDAGER_FULL = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+
+// Formater åpningstider til lesbar tekst, f.eks. "mandag–fredag 08:00–16:00".
+export function formaterApningstider(a: { fra: string; til: string; dager: number[] }): string {
+  const dager = [...a.dager].sort((x, y) => x - y);
+  if (dager.length === 0) return "stengt";
+  const sammenhengende = dager.every((d, i) => i === 0 || d === dager[i - 1] + 1);
+  const dagtekst =
+    sammenhengende && dager.length > 1
+      ? `${UKEDAGER_FULL[dager[0]]}–${UKEDAGER_FULL[dager[dager.length - 1]]}`
+      : dager.map((d) => UKEDAGER_KORT[d]).join(", ");
+  return `${dagtekst} ${a.fra}–${a.til}`;
+}
