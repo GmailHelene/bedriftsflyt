@@ -14,6 +14,8 @@ const schema = z.object({
   DATABASE_SSL: z.preprocess(tomBlirUndefined, z.enum(["true", "false"]).optional()),
   DASHBOARD_DEV_PASSWORD: valgfriTekst,
   ANTHROPIC_API_KEY: valgfriTekst,
+  BREVO_API_KEY: valgfriTekst,
+  MAIL_DEFAULT_SENDER: valgfriTekst,
   VIPPS_CLIENT_ID: valgfriTekst,
   VIPPS_CLIENT_SECRET: valgfriTekst,
   VIPPS_SUBSCRIPTION_KEY: valgfriTekst,
