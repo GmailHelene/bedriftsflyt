@@ -6,11 +6,14 @@ export const VIPPS_SUB_COOKIE = "bf_vipps_sub"; // midlertidig, mens bruker kobl
 export const OIDC_STATE_COOKIE = "bf_oidc_state";
 
 function secret(): string {
-  return (
-    process.env.SESSION_SECRET ||
-    process.env.DASHBOARD_DEV_PASSWORD ||
-    "bf-dev-secret-bytt-i-produksjon"
-  );
+  const s = process.env.SESSION_SECRET || process.env.DASHBOARD_DEV_PASSWORD;
+  if (s && s.length > 0) return s;
+  // Ingen nøkkel satt. I produksjon feiler vi heller enn å signere cookies med en
+  // kjent nøkkel (ellers kan sesjoner forfalskes). Lokalt tillates en dev-nøkkel.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET (eller DASHBOARD_DEV_PASSWORD) må settes i produksjon.");
+  }
+  return "kun-lokal-usikker-dev-nokkel";
 }
 
 // Signerer slug så en manuelt satt cookie ikke kan forfalskes.
