@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+# next.js
+/.next/
+/out/
+# production
+/build
+# env (ALDRI commit hemmeligheter)
+.env
+.env*.local
+.env.production
+# test-artefakter
+/test-results/
+/playwright-report/
+# feilplassert hemmelig-fil (skal aldri inn igjen)
+FB-UTLEIE-POST.txt
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+next-env.d.ts

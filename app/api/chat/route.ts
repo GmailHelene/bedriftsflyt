@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { hentBedrift } from "@/lib/repository";
+import { svarKunde, harKI } from "@/lib/chat";
+import { erRateLimited } from "@/lib/ratelimit";
+
+export const runtime = "nodejs";
+
+const schema = z.object({
+  slug: z.string().min(1),
+  melding: z.string().min(1).max(1000),
+  historikk: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) }))
+    .max(20)
+    .optional(),
+});
+
+export async function POST(req: NextRequest) {
+  if (!harKI()) {
+    return NextResponse.json({ feil: "KI er ikke konfigurert (mangler ANTHROPIC_API_KEY)." }, { status: 503 });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "ukjent";
+  if (await erRateLimited("chat:" + ip)) {
+    return NextResponse.json({ feil: "For mange meldinger. Vent et minutt." }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const p = schema.safeParse(body);
+  if (!p.success) {
+    return NextResponse.json({ feil: "Ugyldige data." }, { status: 400 });
+  }
+
+  const b = await hentBedrift(p.data.slug);
+  if (!b) {
+    return NextResponse.json({ feil: "Fant ikke bedriften." }, { status: 404 });
+  }
+
+  try {
+    const svar = await svarKunde(b, p.data.melding, p.data.historikk);
+    return NextResponse.json({ svar });
+  } catch {
+    return NextResponse.json({ feil: "KI-feil. Prøv igjen om litt." }, { status: 502 });
+  }
+}

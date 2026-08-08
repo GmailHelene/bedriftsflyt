@@ -1,0 +1,54 @@
+:root {
+  --bg: #f7f5f6;
+  --surface: #ffffff;
+  --ink: #241a22;
+  --muted: #7a6e75;
+  --line: #eae2e6;
+  --accent: #c0466e;
+  --accent-ink: #9e2f55;
+  --accent-soft: #fbe9ef;
+  --good: #2e7d5b;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #140f13;
+    --surface: #1d171b;
+    --ink: #f2eaee;
+    --muted: #ab9da5;
+    --line: #2e2429;
+    --accent: #e486a6;
+    --accent-ink: #f1aac2;
+    --accent-soft: #2a1922;
+    --good: #5fc79a;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+.wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 72px; }
+.brand { font-family: Georgia, serif; font-weight: 600; font-size: 20px; display: inline-flex; align-items: center; gap: 9px; }
+.brand .mark { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-ink)); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 1px 2px rgba(36,26,34,.05); overflow: hidden; }
+.cover { height: 110px; background: linear-gradient(120deg, #e9b6c8, #c0466e 72%); }
+.phead { padding: 0 22px 18px; margin-top: -34px; }
+.avatar { width: 68px; height: 68px; border-radius: 18px; background: var(--accent-soft); border: 3px solid var(--surface); display: grid; place-items: center; font-family: Georgia, serif; font-size: 26px; color: var(--accent-ink); }
+h1 { font-family: Georgia, serif; font-size: 24px; margin: 12px 0 4px; }
+h2 { font-family: Georgia, serif; font-size: 18px; margin: 0 0 8px; }
+.muted { color: var(--muted); font-size: 14px; }
+.verified { display: inline-flex; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); padding: 3px 9px; border-radius: 20px; margin-left: 8px; }
+.stars { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+.stars b { color: var(--ink); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; padding: 14px 18px; border-radius: 12px; cursor: pointer; width: 100%; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
