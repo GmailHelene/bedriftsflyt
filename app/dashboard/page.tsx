@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
-import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash } from "./actions";
+import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash, loggUt } from "./actions";
 
 export const metadata = { title: "Dashbord · Bedriftsflyt" };
 
@@ -80,9 +80,15 @@ export default async function Dashboard({
           <span className="mark" aria-hidden="true" />
           Bedriftsflyt
         </div>
-        <Link href="/dashboard/logout" className="muted" style={{ marginLeft: "auto", fontSize: 14 }}>
-          Logg ut
-        </Link>
+        <form action={loggUt} style={{ marginLeft: "auto" }}>
+          <button
+            type="submit"
+            className="muted"
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontFamily: "inherit", padding: 0, color: "var(--muted)" }}
+          >
+            Logg ut
+          </button>
+        </form>
       </div>
 
       <h1 style={{ marginTop: 24 }}>Hei, {b.navn}</h1>

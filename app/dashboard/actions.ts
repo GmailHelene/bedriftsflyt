@@ -208,6 +208,12 @@ export async function lagreKundeNotat(formData: FormData) {
   revalidatePath("/dashboard/kunder");
 }
 
+// Logg ut via POST (ikke GET), så Next sin prefetch av lenker ikke sletter sesjonen ved et uhell.
+export async function loggUt() {
+  cookies().delete(SESSION_COOKIE);
+  redirect("/dashboard/login");
+}
+
 function settSesjon(slug: string) {
   cookies().set(SESSION_COOKIE, signerSlug(slug), {
     httpOnly: true,
