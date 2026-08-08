@@ -55,6 +55,7 @@ export default async function Dashboard({
         {[
           ["/dashboard/kalender", "Kalender"],
           ["/dashboard/kunder", "Kunder"],
+          ["/dashboard/samtaler", "Samtaler"],
           ["/dashboard/komponer", "KI-tekst"],
           ["/dashboard/synlighet", "Synlighet"],
           ["/dashboard/oppsett", "Innstillinger"],

@@ -12,7 +12,19 @@ import {
 
 const container: React.CSSProperties = { maxWidth: 1040, margin: "0 auto", padding: "0 20px" };
 
-// Håndverk-kortet får blått tema lokalt (color-mix holder det lesbart i lys/mørk).
+// Nøytralt skifer-tema på forsiden (ikke rosa). Bransjefargene lever i hvert sitt kort.
+const noytralTema = {
+  ["--accent"]: "#3b4a63",
+  ["--accent-ink"]: "color-mix(in srgb, #3b4a63 62%, var(--ink))",
+  ["--accent-soft"]: "color-mix(in srgb, #3b4a63 15%, var(--surface))",
+} as React.CSSProperties;
+
+const berryTema = {
+  ["--accent"]: "#c0466e",
+  ["--accent-ink"]: "color-mix(in srgb, #c0466e 60%, var(--ink))",
+  ["--accent-soft"]: "color-mix(in srgb, #c0466e 16%, var(--surface))",
+} as React.CSSProperties;
+
 const blaTema = {
   ["--accent"]: "#1f5f8b",
   ["--accent-ink"]: "color-mix(in srgb, #1f5f8b 60%, var(--ink))",
@@ -26,7 +38,7 @@ const bransjer = [
     beskrivelse: "Vipper, negler, hår, hud og massasje. Kundene booker selv, du slipper DM-maset.",
     href: "/skjonnhet",
     eksempel: "/silje",
-    tema: undefined as React.CSSProperties | undefined,
+    tema: berryTema,
   },
   {
     Ikon: VerktoyIkon,
@@ -40,7 +52,7 @@ const bransjer = [
 
 export default function Home() {
   return (
-    <main>
+    <main style={noytralTema}>
       {/* Nav */}
       <header style={{ ...container, display: "flex", alignItems: "center", gap: 16, padding: "18px 20px" }}>
         <div className="brand">

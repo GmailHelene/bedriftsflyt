@@ -41,19 +41,19 @@ export async function POST(req: NextRequest) {
   });
 
   if (res.ok) {
-    // Bookingbekreftelse til kunden (best-effort - skal aldri velte selve bookingen).
+    const bedrift = await hentBedrift(p.slug).catch(() => null);
+    const tjeneste = bedrift?.tjenester.find((t) => t.id === p.service)?.navn ?? "Time";
+    const bedriftNavn = bedrift?.navn ?? "";
+    const naar = `${p.dato} kl. ${p.tid}`;
+    const base = process.env.APP_BASE_URL || new URL(req.url).origin;
+
+    // Bekreftelse til kunden (best-effort - skal aldri velte selve bookingen).
     if (p.epost) {
       try {
-        const bedrift = await hentBedrift(p.slug);
-        const tjeneste = bedrift?.tjenester.find((t) => t.id === p.service)?.navn ?? "Timen din";
-        const bedriftNavn = bedrift?.navn ?? "";
-        const naar = `${p.dato} kl. ${p.tid}`;
-        const base = process.env.APP_BASE_URL || new URL(req.url).origin;
         const avbestillLenke = `${base}/avbestill/${signerBooking(res.id)}`;
-        const anmeldLinje =
-          bedrift?.anmeldelseUrl
-            ? `<p style="color:#666">Etter timen: gi oss gjerne en vurdering: <a href="${esc(bedrift.anmeldelseUrl)}">${esc(bedrift.anmeldelseUrl)}</a></p>`
-            : "";
+        const anmeldLinje = bedrift?.anmeldelseUrl
+          ? `<p style="color:#666">Etter timen: gi oss gjerne en vurdering: <a href="${esc(bedrift.anmeldelseUrl)}">${esc(bedrift.anmeldelseUrl)}</a></p>`
+          : "";
         const html =
           `<p>Hei ${esc(p.navn)},</p>` +
           `<p>Timen din er bekreftet${bedriftNavn ? ` hos <strong>${esc(bedriftNavn)}</strong>` : ""}:</p>` +
@@ -66,9 +66,22 @@ export async function POST(req: NextRequest) {
           `${tjeneste}\n${naar}\n\nTrenger du å avlyse? ${avbestillLenke}\n\nVi sees!`;
         await sendEpost({ til: p.epost, emne: `Bekreftet: ${tjeneste} ${naar}`, html, tekst });
       } catch (e) {
-        console.error("[booking] kunne ikke sende bekreftelse:", e instanceof Error ? e.message : e);
+        console.error("[booking] bekreftelse feilet:", e instanceof Error ? e.message : e);
       }
     }
+
+    // Varsel til bedriften om ny booking (hvis varsel-e-post er satt).
+    if (bedrift?.varselEpost) {
+      try {
+        const kunde = `${esc(p.navn)}${p.telefon ? ` · ${esc(p.telefon)}` : ""}${p.epost ? ` · ${esc(p.epost)}` : ""}`;
+        const html = `<p>Ny booking:</p><p><strong>${esc(tjeneste)}</strong><br>${esc(naar)}</p><p>Kunde: ${kunde}</p>`;
+        const tekst = `Ny booking:\n${tjeneste}\n${naar}\nKunde: ${p.navn}${p.telefon ? ` · ${p.telefon}` : ""}${p.epost ? ` · ${p.epost}` : ""}`;
+        await sendEpost({ til: bedrift.varselEpost, emne: `Ny booking: ${tjeneste} ${p.dato} ${p.tid}`, html, tekst });
+      } catch (e) {
+        console.error("[booking] eiervarsel feilet:", e instanceof Error ? e.message : e);
+      }
+    }
+
     return NextResponse.json({ ok: true }, { status: 201 });
   }
   if (res.grunn === "opptatt")

@@ -16,6 +16,12 @@ const ALTERS = [
   "alter table businesses add column if not exists tema jsonb",
   // Påminnelser: marker at en booking allerede har fått påminnelse.
   "alter table bookings add column if not exists paminnelse_sendt boolean not null default false",
+  // Eier-varsling: e-postadresse bedriften vil ha ny-booking-varsler til.
+  "alter table businesses add column if not exists varsel_epost text",
+  // E-post/passord-innlogging (alternativ til Vipps).
+  "alter table businesses add column if not exists epost text",
+  "alter table businesses add column if not exists passord_hash text",
+  "create unique index if not exists uniq_business_epost on businesses (lower(epost)) where epost is not null",
 ];
 
 // Demo-bedrifter så eksempelsidene er ekte bookbare (book → e-post → avbestill).

@@ -97,6 +97,8 @@ alter table businesses add column if not exists depositum_kr int not null defaul
 alter table businesses add column if not exists tema jsonb;
 -- Påminnelser: marker at en booking har fått påminnelse.
 alter table bookings add column if not exists paminnelse_sendt boolean not null default false;
+-- Eier-varsling: e-post for ny-booking-varsler.
+alter table businesses add column if not exists varsel_epost text;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
     alter table bookings

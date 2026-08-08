@@ -1,68 +1,7 @@
-export default function Login({
-  searchParams,
-}: {
-  searchParams: { feil?: string };
-}) {
-  return (
-    <main className="wrap">
-      <div className="brand">
-        <span className="mark" aria-hidden="true" />
-        Bedriftsflyt
-      </div>
+import Link from "next/link";
+import { loggInnMedEpost } from "../actions";
 
-      <div className="card" style={{ padding: 20, marginTop: 24 }}>
-        <h1>Logg inn</h1>
-
-        {searchParams.feil === "vipps" && (
-          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>
-            Vipps Login er ikke konfigurert ennå. Bruk dev-innlogging under.
-          </p>
-        )}
-        {searchParams.feil === "1" && (
-          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>
-            Innloggingen ble avbrutt. Prøv igjen.
-          </p>
-        )}
-
-        {/* Ekte, passordløs innlogging */}
-        <a
-          href="/api/auth/vipps"
-          className="btn"
-          style={{ marginTop: 14, textDecoration: "none", background: "#FF5B24" }}
-        >
-          Logg inn med Vipps
-        </a>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0 12px", color: "var(--muted)", fontSize: 12 }}>
-          <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
-          eller dev-innlogging
-          <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
-        </div>
-
-        {searchParams.feil === "dev" && (
-          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginBottom: 8 }}>
-            Feil bedrift-slug eller passord.
-          </p>
-        )}
-
-        <form
-          method="post"
-          action="/api/login"
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}
-        >
-          <input name="slug" placeholder="Bedrift-slug (f.eks. silje)" required style={inputStyle} aria-label="Bedrift-slug" />
-          <input name="passord" type="password" placeholder="Dev-passord" required style={inputStyle} aria-label="Passord" />
-          <button className="btn btn-ghost" type="submit">
-            Logg inn (dev)
-          </button>
-        </form>
-        <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>
-          Dev-innlogging er midlertidig, for lokal testing uten Vipps-nøkler.
-        </p>
-      </div>
-    </main>
-  );
-}
+export const metadata = { title: "Logg inn · Bedriftsflyt" };
 
 const inputStyle: React.CSSProperties = {
   padding: "12px 14px",
@@ -72,4 +11,58 @@ const inputStyle: React.CSSProperties = {
   color: "var(--ink)",
   fontSize: 15,
   fontFamily: "inherit",
+  width: "100%",
 };
+
+export default function Login({
+  searchParams,
+}: {
+  searchParams: { feil?: string; nullstilt?: string };
+}) {
+  return (
+    <main className="wrap">
+      <div className="brand">
+        <span className="mark" aria-hidden="true" />
+        <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>Bedriftsflyt</Link>
+      </div>
+
+      <div className="card" style={{ padding: 20, marginTop: 24 }}>
+        <h1>Logg inn</h1>
+
+        {searchParams.nullstilt === "1" && (
+          <p style={{ color: "var(--good)", fontWeight: 600, marginTop: 10 }}>Passordet er endret. Logg inn under.</p>
+        )}
+        {searchParams.feil === "epost" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Feil e-post eller passord.</p>
+        )}
+        {searchParams.feil === "vipps" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Vipps Login er ikke konfigurert ennå.</p>
+        )}
+        {searchParams.feil === "1" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Innloggingen ble avbrutt. Prøv igjen.</p>
+        )}
+
+        <form action={loggInnMedEpost} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
+          <input name="epost" type="email" placeholder="E-post" required style={inputStyle} aria-label="E-post" />
+          <input name="passord" type="password" placeholder="Passord" required style={inputStyle} aria-label="Passord" />
+          <button className="btn" type="submit">Logg inn</button>
+        </form>
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 14 }}>
+          <Link href="/dashboard/registrer" className="muted">Opprett konto</Link>
+          <Link href="/dashboard/glemt" className="muted">Glemt passord?</Link>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0 12px", color: "var(--muted)", fontSize: 12 }}>
+          <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+          eller
+          <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+        </div>
+
+        <a href="/api/auth/vipps" className="btn" style={{ textDecoration: "none", background: "#FF5B24" }}>
+          Logg inn med Vipps
+        </a>
+      </div>
+    </main>
+  );
+}

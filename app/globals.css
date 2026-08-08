@@ -40,7 +40,13 @@ a { color: var(--accent); }
 
 .wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 72px; }
 .brand { font-family: Georgia, serif; font-weight: 600; font-size: 20px; display: inline-flex; align-items: center; gap: 9px; }
-.brand .mark { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-ink)); }
+/* Nøytral logo som passer alle bransjer: mørk skifer med et hvitt "flyt/vekst"-merke. */
+.brand .mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background-color: #2f3b52;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M7 16v2M12 12v6M17 8v10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: center; background-size: 80%;
+}
 
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 1px 2px rgba(36,26,34,.05); overflow: hidden; }
 .cover { height: 110px; background: linear-gradient(120deg, #e9b6c8, #c0466e 72%); }

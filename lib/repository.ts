@@ -20,6 +20,7 @@ type BusinessRow = {
   depositum_kr: number | null;
   owner_vipps_sub: string | null;
   tema: Tema | null;
+  varsel_epost: string | null;
 };
 
 type ServiceRow = {
@@ -34,7 +35,7 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
 
   const rows = await query<BusinessRow>(
     `select id, slug, navn, tagline, sted, rating, antall_vurderinger, ledige_tider,
-            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema
+            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema, varsel_epost
        from businesses where slug = $1 limit 1`,
     [slug]
   );
@@ -68,6 +69,7 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
     anmeldelseUrl: b.anmeldelse_url ?? undefined,
     depositumKr: b.depositum_kr ?? 0,
     tema: b.tema ?? undefined,
+    varselEpost: b.varsel_epost ?? undefined,
   };
 }
 
@@ -384,6 +386,40 @@ export async function settDepositum(slug: string, kr: number): Promise<boolean> 
   return true;
 }
 
+export async function settVarselEpost(slug: string, epost: string): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set varsel_epost = $2 where slug = $1", [slug, epost || null]);
+  return true;
+}
+
+// ---- Chat-logg (så bedriften kan se hva kundene spurte om) ----
+
+export async function lagreChatMelding(slug: string, rolle: "user" | "assistant", tekst: string): Promise<void> {
+  if (!getPool()) return;
+  await query(
+    `insert into chat_messages (business_id, rolle, tekst)
+       select b.id, $2, $3 from businesses b where b.slug = $1`,
+    [slug, rolle, tekst.slice(0, 4000)]
+  );
+}
+
+export type ChatLogg = { rolle: string; tekst: string; naar: string };
+
+export async function hentSamtaler(slug: string, grense = 100): Promise<ChatLogg[]> {
+  if (!getPool()) return [];
+  const rows = await query<ChatLogg>(
+    `select cm.rolle, cm.tekst,
+            to_char(cm.created_at at time zone 'Europe/Oslo', 'DD.MM HH24:MI') as naar
+       from chat_messages cm
+       join businesses b on b.id = cm.business_id
+      where b.slug = $1
+      order by cm.created_at desc
+      limit $2`,
+    [slug, grense]
+  );
+  return rows;
+}
+
 // ---- Påminnelser ----
 
 export type Paminnelse = {
@@ -587,6 +623,50 @@ export async function opprettBedrift(input: {
   } catch {
     return { ok: false, grunn: "ugyldig" };
   }
+}
+
+// ---- E-post/passord-konto ----
+
+export async function opprettBedriftMedPassord(input: {
+  navn: string;
+  sted: string;
+  slug: string;
+  epost: string;
+  passordHash: string;
+}): Promise<{ ok: boolean; grunn?: "slug" | "epost" | "ugyldig" }> {
+  if (!getPool()) return { ok: false, grunn: "ugyldig" };
+  try {
+    const rows = await query<{ slug: string }>(
+      `insert into businesses (slug, navn, sted, verifisert, epost, passord_hash, ledige_tider)
+         values ($1, $2, $3, false, $4, $5, array['09:00','12:00','14:00','17:00'])
+       on conflict (slug) do nothing
+       returning slug`,
+      [input.slug, input.navn, input.sted, input.epost.toLowerCase(), input.passordHash]
+    );
+    if (rows.length === 0) return { ok: false, grunn: "slug" };
+    return { ok: true };
+  } catch (e: unknown) {
+    // 23505 = unique_violation → e-posten er allerede i bruk
+    if (typeof e === "object" && e !== null && (e as { code?: string }).code === "23505") {
+      return { ok: false, grunn: "epost" };
+    }
+    return { ok: false, grunn: "ugyldig" };
+  }
+}
+
+export async function finnBedriftMedEpost(epost: string): Promise<{ slug: string; passordHash: string | null } | null> {
+  if (!getPool()) return null;
+  const rows = await query<{ slug: string; passord_hash: string | null }>(
+    "select slug, passord_hash from businesses where lower(epost) = lower($1) limit 1",
+    [epost]
+  );
+  return rows[0] ? { slug: rows[0].slug, passordHash: rows[0].passord_hash } : null;
+}
+
+export async function settPassord(slug: string, hash: string): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set passord_hash = $2 where slug = $1", [slug, hash]);
+  return true;
 }
 
 // ---- Booking-kalender (ukesvisning) ----

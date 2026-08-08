@@ -17,9 +17,16 @@ import {
   settApningstider,
   settDepositum,
   settAnmeldelseUrl,
+  settVarselEpost,
   kansellerBookingForBedrift,
+  opprettBedriftMedPassord,
+  finnBedriftMedEpost,
+  settPassord,
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
+import { hashPassord, verifiserPassord } from "@/lib/passord";
+import { signerReset, verifiserReset } from "@/lib/token";
+import { sendEpost } from "@/lib/email";
 
 function slugify(s: string): string {
   return (
@@ -170,6 +177,15 @@ export async function lagreAnmeldelse(formData: FormData) {
   redirect("/dashboard/synlighet?lagret=1");
 }
 
+// E-post bedriften vil ha ny-booking-varsler til.
+export async function lagreVarsel(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settVarselEpost(slug, String(formData.get("varsel_epost") ?? "").trim());
+  revalidatePath("/dashboard/oppsett");
+  redirect("/dashboard/oppsett?lagret=varsel");
+}
+
 // Bedriften avbestiller en booking fra dashbordet/kalenderen.
 export async function kansellerBookingDash(formData: FormData) {
   const slug = getSessionSlug();
@@ -190,6 +206,72 @@ export async function lagreKundeNotat(formData: FormData) {
   if (!navn) return;
   await oppdaterKundeNotat(slug, navn, telefonRaw || null, notat);
   revalidatePath("/dashboard/kunder");
+}
+
+function settSesjon(slug: string) {
+  cookies().set(SESSION_COOKIE, signerSlug(slug), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 8,
+  });
+}
+
+// Registrer ny bedrift med e-post + passord (alternativ til Vipps).
+export async function registrerMedEpost(formData: FormData) {
+  const navn = String(formData.get("navn") ?? "").trim();
+  const sted = String(formData.get("sted") ?? "").trim();
+  const epost = String(formData.get("epost") ?? "").trim();
+  const passord = String(formData.get("passord") ?? "");
+  const slug = slugify(String(formData.get("slug") ?? "").trim() || navn);
+  if (!navn || !epost || passord.length < 8 || !slug) redirect("/dashboard/registrer?feil=felt");
+  const res = await opprettBedriftMedPassord({ navn, sted, slug, epost, passordHash: hashPassord(passord) });
+  if (!res.ok) redirect(`/dashboard/registrer?feil=${res.grunn}`);
+  settSesjon(slug);
+  redirect("/dashboard");
+}
+
+// Logg inn med e-post + passord.
+export async function loggInnMedEpost(formData: FormData) {
+  const epost = String(formData.get("epost") ?? "").trim();
+  const passord = String(formData.get("passord") ?? "");
+  const funn = await finnBedriftMedEpost(epost);
+  if (!funn || !verifiserPassord(passord, funn.passordHash)) redirect("/dashboard/login?feil=epost");
+  settSesjon(funn.slug);
+  redirect("/dashboard");
+}
+
+// Glemt passord: send tilbakestillingslenke (samme svar uansett, ingen bruker-enumerering).
+export async function sendTilbakestilling(formData: FormData) {
+  const epost = String(formData.get("epost") ?? "").trim();
+  const funn = await finnBedriftMedEpost(epost);
+  if (funn) {
+    const base = process.env.APP_BASE_URL || "";
+    const lenke = `${base}/dashboard/nullstill/${signerReset(funn.slug)}`;
+    try {
+      await sendEpost({
+        til: epost,
+        emne: "Tilbakestill passordet ditt - Bedriftsflyt",
+        html: `<p>Klikk for å velge nytt passord (lenken er gyldig i 1 time):</p><p><a href="${lenke}">${lenke}</a></p><p>Ba du ikke om dette, kan du se bort fra denne e-posten.</p>`,
+        tekst: `Velg nytt passord (gyldig i 1 time): ${lenke}`,
+      });
+    } catch {
+      /* ignore - vi avslører ikke om e-posten finnes */
+    }
+  }
+  redirect("/dashboard/glemt?sendt=1");
+}
+
+// Sett nytt passord fra tilbakestillingslenke.
+export async function settNyttPassord(formData: FormData) {
+  const token = String(formData.get("token") ?? "");
+  const passord = String(formData.get("passord") ?? "");
+  const slug = verifiserReset(token);
+  if (!slug) redirect(`/dashboard/nullstill/${encodeURIComponent(token)}?feil=token`);
+  if (passord.length < 8) redirect(`/dashboard/nullstill/${encodeURIComponent(token)}?feil=kort`);
+  await settPassord(slug, hashPassord(passord));
+  redirect("/dashboard/login?nullstilt=1");
 }
 
 // Dev/test: kjør et månedstrekk manuelt (i produksjon gjøres dette av en planlagt jobb).

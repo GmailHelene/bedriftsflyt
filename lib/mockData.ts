@@ -34,6 +34,7 @@ export type Bedrift = {
   apningstider: Apningstider;
   anmeldelseUrl?: string;
   depositumKr?: number;
+  varselEpost?: string;
   tema?: Tema;
 };
 

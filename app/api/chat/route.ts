@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
+import { hentBedrift, hentChatbotConfig, lagreChatMelding } from "@/lib/repository";
 import { svarKunde, harKI } from "@/lib/chat";
 import { erRateLimited } from "@/lib/ratelimit";
 
@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
   try {
     const config = await hentChatbotConfig(p.data.slug);
     const svar = await svarKunde(b, p.data.melding, p.data.historikk, config, p.data.lang ?? "no");
+    // Lagre samtalen så bedriften kan se den i dashbordet (best-effort).
+    try {
+      await lagreChatMelding(p.data.slug, "user", p.data.melding);
+      await lagreChatMelding(p.data.slug, "assistant", svar);
+    } catch {
+      /* logging skal aldri velte svaret */
+    }
     return NextResponse.json({ svar });
   } catch {
     return NextResponse.json({ feil: "KI-feil. Prøv igjen om litt." }, { status: 502 });

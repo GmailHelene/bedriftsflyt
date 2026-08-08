@@ -4,7 +4,7 @@ import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { harKI } from "@/lib/chat";
-import { lagreOppsett, lagreApningstider, lagreDepositum } from "../actions";
+import { lagreOppsett, lagreApningstider, lagreDepositum, lagreVarsel } from "../actions";
 
 export const metadata = { title: "Innstillinger · Bedriftsflyt" };
 
@@ -183,9 +183,24 @@ export default async function Oppsett({
         </button>
       </form>
 
+      {/* Varsling */}
+      <form action={lagreVarsel} className="card" style={{ padding: 20, marginTop: 16, display: "block" }}>
+        <h2>Varsling</h2>
+        <p className="muted" style={{ fontSize: 13, marginTop: 2, maxWidth: "56ch" }}>
+          Få en e-post når noen booker en time. La stå tom for å slå av.
+        </p>
+        <label style={{ display: "block", marginTop: 12, maxWidth: 340 }}>
+          <span className="muted" style={labelHint}>Varsle meg på e-post</span>
+          <input name="varsel_epost" type="email" defaultValue={b.varselEpost ?? ""} placeholder="deg@epost.no" style={inputStyle} />
+        </label>
+        <button className="btn" type="submit" style={{ marginTop: 16, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
+          Lagre varsling
+        </button>
+      </form>
+
       <p className="muted" style={{ fontSize: 12.5, marginTop: 14, maxWidth: "56ch" }}>
-        For Google-profil og anmeldelser, se{" "}
-        <Link href="/dashboard/synlighet">Synlighet</Link>.
+        For Google-profil og anmeldelser, se <Link href="/dashboard/synlighet">Synlighet</Link>. Kundesamtalene med
+        chatboten ligger under <Link href="/dashboard/samtaler">Samtaler</Link>.
       </p>
     </main>
   );
