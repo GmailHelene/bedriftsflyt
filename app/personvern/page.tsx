@@ -19,7 +19,7 @@ export default function Personvern() {
       <p className="muted">Sist oppdatert: 8. august 2026</p>
 
       <h2 style={h2}>1. Behandlingsansvarlig</h2>
-      <p>Bedriftsflyt (enkeltpersonforetak, org.nr [org.nr]), post@bedriftsflyt.no, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Bedriftsflyt er databehandler.</p>
+      <p>Bedriftsflyt (enkeltpersonforetak, org.nr 927 889 404), post@bedriftsflyt.no, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Bedriftsflyt er databehandler.</p>
 
       <h2 style={h2}>2. Hvilke opplysninger vi behandler</h2>
       <p>Kontodata, betalingsopplysninger (håndteres av Vipps — vi lagrer ikke kortdata), samt booking- og kundedata som legges inn i tjenesten.</p>

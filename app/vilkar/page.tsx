@@ -19,7 +19,7 @@ export default function Vilkar() {
       <p className="muted">Sist oppdatert: 8. august 2026</p>
 
       <h2 style={h2}>1. Om tjenesten</h2>
-      <p>Bedriftsflyt er et digitalt verktøy for booking, fakturering, betaling og kundedialog for små bedrifter, levert av Bedriftsflyt (enkeltpersonforetak, org.nr [org.nr]).</p>
+      <p>Bedriftsflyt er et digitalt verktøy for booking, fakturering, betaling og kundedialog for små bedrifter, levert av Bedriftsflyt (enkeltpersonforetak, org.nr 927 889 404).</p>
 
       <h2 style={h2}>2. Abonnement og pris</h2>
       <p>Tjenesten koster 389 kr per måned. Første måned er gratis. Det er ingen bindingstid.</p>
