@@ -7,6 +7,7 @@ const nextConfig = {
     // (uten dette kan Next avvise form-actions når forwarded host != host).
     serverActions: {
       allowedOrigins: ["bedriftsflyt.no", "www.bedriftsflyt.no", "bedriftsflyt-production.up.railway.app"],
+      bodySizeLimit: "2mb", // rom for komprimerte bilde-opplastinger (base64)
     },
   },
   async headers() {

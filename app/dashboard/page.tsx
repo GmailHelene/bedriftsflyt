@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
-import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash, loggUt } from "./actions";
+import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash } from "./actions";
+import DashboardNav from "./DashboardNav";
 
 export const metadata = { title: "Dashbord · Bedriftsflyt" };
 
@@ -75,51 +76,10 @@ export default async function Dashboard({
 
   return (
     <main className="wrap">
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div className="brand">
-          <span className="mark" aria-hidden="true" />
-          Bedriftsflyt
-        </div>
-        <form action={loggUt} style={{ marginLeft: "auto" }}>
-          <button
-            type="submit"
-            className="muted"
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontFamily: "inherit", padding: 0, color: "var(--muted)" }}
-          >
-            Logg ut
-          </button>
-        </form>
-      </div>
+      <DashboardNav />
 
       <h1 style={{ marginTop: 24 }}>Hei, {b.navn}</h1>
       <p className="muted">Din arbeidsflate.</p>
-
-      <nav style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-        {[
-          ["/dashboard/kalender", "Kalender"],
-          ["/dashboard/kunder", "Kunder"],
-          ["/dashboard/samtaler", "Samtaler"],
-          ["/dashboard/komponer", "KI-tekst"],
-          ["/dashboard/synlighet", "Synlighet"],
-          ["/dashboard/oppsett", "Innstillinger"],
-        ].map(([href, tekst]) => (
-          <Link
-            key={href}
-            href={href}
-            className="btn-ghost"
-            style={{
-              display: "inline-flex",
-              padding: "8px 14px",
-              borderRadius: 999,
-              fontSize: 13.5,
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
-            {tekst}
-          </Link>
-        ))}
-      </nav>
 
       {!dbPa && (
         <div className="card" style={{ padding: 14, marginTop: 16, borderColor: "var(--accent)" }}>

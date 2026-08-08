@@ -99,6 +99,14 @@ alter table businesses add column if not exists tema jsonb;
 alter table bookings add column if not exists paminnelse_sendt boolean not null default false;
 -- Eier-varsling: e-post for ny-booking-varsler.
 alter table businesses add column if not exists varsel_epost text;
+-- E-post/passord-innlogging.
+alter table businesses add column if not exists epost text;
+alter table businesses add column if not exists passord_hash text;
+create unique index if not exists uniq_business_epost on businesses (lower(epost)) where epost is not null;
+-- Utseende: profilbilde, galleri, merkefarge.
+alter table businesses add column if not exists profilbilde text;
+alter table businesses add column if not exists galleri jsonb not null default '[]';
+alter table businesses add column if not exists merkefarge text;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
     alter table bookings

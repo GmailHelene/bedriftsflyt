@@ -22,6 +22,10 @@ import {
   opprettBedriftMedPassord,
   finnBedriftMedEpost,
   settPassord,
+  settProfilbilde,
+  leggTilGalleribilde,
+  slettGalleribilde,
+  settMerkefarge,
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
 import { hashPassord, verifiserPassord } from "@/lib/passord";
@@ -184,6 +188,61 @@ export async function lagreVarsel(formData: FormData) {
   await settVarselEpost(slug, String(formData.get("varsel_epost") ?? "").trim());
   revalidatePath("/dashboard/oppsett");
   redirect("/dashboard/oppsett?lagret=varsel");
+}
+
+// ---- Utseende (profilbilde, galleri, merkefarge) ----
+
+function gyldigBilde(s: string): boolean {
+  // data:image/... og under ~520KB rå (base64 er ~1,37x, så < ~710k tegn).
+  return s.startsWith("data:image/") && s.length < 710_000;
+}
+
+export async function lastOppProfilbilde(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const bilde = String(formData.get("bilde") ?? "");
+  if (gyldigBilde(bilde)) await settProfilbilde(slug, bilde);
+  revalidatePath("/dashboard/utseende");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/utseende?lagret=bilde");
+}
+
+export async function fjernProfilbilde() {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  await settProfilbilde(slug, null);
+  revalidatePath("/dashboard/utseende");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/utseende");
+}
+
+export async function leggTilGalleri(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const bilde = String(formData.get("bilde") ?? "");
+  if (gyldigBilde(bilde)) await leggTilGalleribilde(slug, bilde);
+  revalidatePath("/dashboard/utseende");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/utseende?lagret=galleri");
+}
+
+export async function fjernGalleri(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const i = Number(formData.get("indeks") ?? -1);
+  if (Number.isInteger(i) && i >= 0) await slettGalleribilde(slug, i);
+  revalidatePath("/dashboard/utseende");
+  revalidatePath(`/${slug}`);
+}
+
+export async function lagreMerkefarge(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const hex = String(formData.get("merkefarge") ?? "").trim();
+  await settMerkefarge(slug, /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : null);
+  revalidatePath("/dashboard/utseende");
+  revalidatePath(`/${slug}`);
+  redirect("/dashboard/utseende?lagret=farge");
 }
 
 // Bedriften avbestiller en booking fra dashbordet/kalenderen.

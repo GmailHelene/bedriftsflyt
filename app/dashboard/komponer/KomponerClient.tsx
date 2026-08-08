@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import type { SVGProps } from "react";
-import { KameraIkon, ChatIkon, StjerneIkon, SokIkon } from "@/app/icons";
+import { KameraIkon, StjerneIkon, SokIkon } from "@/app/icons";
 
-type KomponerType = "instagram" | "sms" | "anmeldelse" | "google";
+type KomponerType = "instagram" | "anmeldelse" | "google";
 
 const VALG: { type: KomponerType; Ikon: (p: SVGProps<SVGSVGElement> & { size?: number }) => JSX.Element; navn: string; hint: string }[] = [
   { type: "instagram", Ikon: KameraIkon, navn: "Instagram-post", hint: "F.eks. ledige timer denne uka, eller en ny behandling" },
-  { type: "sms", Ikon: ChatIkon, navn: "SMS til kunde", hint: "F.eks. påminnelse om time i morgen kl 14" },
   { type: "anmeldelse", Ikon: StjerneIkon, navn: "Svar på anmeldelse", hint: "Lim inn anmeldelsen du vil svare på" },
   { type: "google", Ikon: SokIkon, navn: "Google-beskrivelse", hint: "F.eks. hva som gjør deg spesiell" },
 ];

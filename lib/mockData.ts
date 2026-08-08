@@ -35,6 +35,9 @@ export type Bedrift = {
   anmeldelseUrl?: string;
   depositumKr?: number;
   varselEpost?: string;
+  profilbilde?: string; // base64 data-URI
+  galleri?: string[]; // base64 data-URI-er
+  merkefarge?: string; // hex, f.eks. "#c0466e"
   tema?: Tema;
 };
 

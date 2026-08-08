@@ -21,6 +21,9 @@ type BusinessRow = {
   owner_vipps_sub: string | null;
   tema: Tema | null;
   varsel_epost: string | null;
+  profilbilde: string | null;
+  galleri: string[] | null;
+  merkefarge: string | null;
 };
 
 type ServiceRow = {
@@ -35,7 +38,8 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
 
   const rows = await query<BusinessRow>(
     `select id, slug, navn, tagline, sted, rating, antall_vurderinger, ledige_tider,
-            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema, varsel_epost
+            apningstid_fra, apningstid_til, apnings_dager, anmeldelse_url, depositum_kr, owner_vipps_sub, tema, varsel_epost,
+            profilbilde, galleri, merkefarge
        from businesses where slug = $1 limit 1`,
     [slug]
   );
@@ -70,6 +74,9 @@ export async function hentBedrift(slug: string): Promise<Bedrift | null> {
     depositumKr: b.depositum_kr ?? 0,
     tema: b.tema ?? undefined,
     varselEpost: b.varsel_epost ?? undefined,
+    profilbilde: b.profilbilde ?? undefined,
+    galleri: b.galleri ?? [],
+    merkefarge: b.merkefarge ?? undefined,
   };
 }
 
@@ -389,6 +396,38 @@ export async function settDepositum(slug: string, kr: number): Promise<boolean> 
 export async function settVarselEpost(slug: string, epost: string): Promise<boolean> {
   if (!getPool()) return false;
   await query("update businesses set varsel_epost = $2 where slug = $1", [slug, epost || null]);
+  return true;
+}
+
+// ---- Utseende: profilbilde, galleri, merkefarge ----
+
+export async function settProfilbilde(slug: string, dataUri: string | null): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set profilbilde = $2 where slug = $1", [slug, dataUri]);
+  return true;
+}
+
+export async function leggTilGalleribilde(slug: string, dataUri: string): Promise<boolean> {
+  if (!getPool()) return false;
+  await query(
+    `update businesses set galleri =
+       case when jsonb_array_length(coalesce(galleri, '[]'::jsonb)) >= 8 then galleri
+            else coalesce(galleri, '[]'::jsonb) || to_jsonb($2::text) end
+     where slug = $1`,
+    [slug, dataUri]
+  );
+  return true;
+}
+
+export async function slettGalleribilde(slug: string, indeks: number): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set galleri = coalesce(galleri, '[]'::jsonb) - $2::int where slug = $1", [slug, indeks]);
+  return true;
+}
+
+export async function settMerkefarge(slug: string, hex: string | null): Promise<boolean> {
+  if (!getPool()) return false;
+  await query("update businesses set merkefarge = $2 where slug = $1", [slug, hex]);
   return true;
 }
 

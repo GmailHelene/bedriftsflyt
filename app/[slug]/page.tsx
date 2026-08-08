@@ -64,16 +64,19 @@ export default async function Page({
     },
   };
 
-  // Bransjetema: overstyr aksentfargene (color-mix holder det lesbart i lys/mørk).
-  const temaStyle = b.tema
+  // Merkefarge (valgt av bedriften) har prioritet, ellers bransjetema. color-mix holder det lesbart i lys/mørk.
+  const aksent = b.merkefarge || b.tema?.accent;
+  const temaStyle = aksent
     ? ({
-        ["--accent"]: b.tema.accent,
-        ["--accent-ink"]: `color-mix(in srgb, ${b.tema.accent} 60%, var(--ink))`,
-        ["--accent-soft"]: `color-mix(in srgb, ${b.tema.accent} 16%, var(--surface))`,
+        ["--accent"]: aksent,
+        ["--accent-ink"]: `color-mix(in srgb, ${aksent} 60%, var(--ink))`,
+        ["--accent-soft"]: `color-mix(in srgb, ${aksent} 16%, var(--surface))`,
       } as React.CSSProperties)
     : undefined;
   const coverStyle = b.tema
     ? { background: `linear-gradient(120deg, ${b.tema.coverFra}, ${b.tema.coverTil} 72%)` }
+    : b.merkefarge
+    ? { background: `linear-gradient(120deg, color-mix(in srgb, ${b.merkefarge} 55%, white), ${b.merkefarge} 82%)` }
     : undefined;
 
   return (
@@ -121,9 +124,13 @@ export default async function Page({
       <div className="card">
         <div className="cover" aria-hidden="true" style={coverStyle} />
         <div className="phead">
-          <div className="avatar" aria-hidden="true">
-            {b.navn.charAt(0)}
-          </div>
+          {b.profilbilde ? (
+            <img className="avatar" src={b.profilbilde} alt={b.navn} style={{ objectFit: "cover", padding: 0 }} />
+          ) : (
+            <div className="avatar" aria-hidden="true">
+              {b.navn.charAt(0)}
+            </div>
+          )}
           <h1>
             {b.navn}
             {b.verifisert && <span className="verified">{t.verifisert}</span>}
@@ -147,6 +154,22 @@ export default async function Page({
             <p className="stars">{lang === "en" ? "New profile" : "Ny profil"}</p>
           )}
         </div>
+
+        {b.galleri && b.galleri.length > 0 && (
+          <div style={{ padding: "0 22px 6px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))", gap: 8 }}>
+              {b.galleri.map((bilde, i) => (
+                <img
+                  key={i}
+                  src={bilde}
+                  alt={`${b.navn} – arbeid ${i + 1}`}
+                  loading="lazy"
+                  style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, border: "1px solid var(--line)" }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ padding: "0 22px 22px" }}>
           {b.depositumKr && b.depositumKr > 0 ? (

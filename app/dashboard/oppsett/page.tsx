@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
+import DashboardNav from "../DashboardNav";
 import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { harKI } from "@/lib/chat";
@@ -50,15 +51,7 @@ export default async function Oppsett({
 
   return (
     <main className="wrap">
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div className="brand">
-          <span className="mark" aria-hidden="true" />
-          Bedriftsflyt
-        </div>
-        <Link href="/dashboard" className="muted" style={{ marginLeft: "auto", fontSize: 14 }}>
-          ← Dashbord
-        </Link>
-      </div>
+      <DashboardNav />
 
       <h1 style={{ marginTop: 24 }}>Innstillinger</h1>
       <p className="muted" style={{ maxWidth: "56ch" }}>
