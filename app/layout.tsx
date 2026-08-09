@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 const beskrivelse =
@@ -23,7 +24,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="nb">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* GoatCounter - cookieless besøksstatistikk */}
+        <Script
+          src="https://gc.zgo.at/count.js"
+          data-goatcounter="https://bedriftsflyt.goatcounter.com/count"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }
