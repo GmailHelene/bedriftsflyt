@@ -37,7 +37,7 @@ export default function Personvern() {
       <p>Du har rett til innsyn, retting, sletting og dataportabilitet. Kontakt post@bedriftsflyt.no. Du kan klage til Datatilsynet.</p>
 
       <h2 style={h2}>7. Informasjonskapsler</h2>
-      <p>Vi bruker kun nødvendige (funksjonelle) informasjonskapsler for innlogging. Vi bruker ikke sporing eller markedsføringskapsler.</p>
+      <p>Vi bruker kun nødvendige (funksjonelle) informasjonskapsler for innlogging. Vi bruker ikke sporing eller markedsføringskapsler. For å se hvor mange som besøker siden bruker vi GoatCounter, en personvernvennlig og cookieless besøksstatistikk som ikke setter informasjonskapsler eller lagrer personopplysninger.</p>
 
       <p className="muted" style={{ marginTop: 28, fontSize: 13 }}>
         <Link href="/">← Tilbake til forsiden</Link>
