@@ -59,7 +59,7 @@ export default function Skjonnhet() {
           </Link>
         </div>
         <p className="muted" style={{ fontSize: 13, marginTop: 14 }}>
-          389 kr/mnd · første måned gratis · ingen bindingstid
+          389 kr/mnd · 14 dager gratis · ingen bindingstid
         </p>
       </section>
 
@@ -125,7 +125,7 @@ export default function Skjonnhet() {
           <div style={{ fontFamily: "Georgia, serif", fontSize: 44, fontWeight: 600, color: "var(--accent-ink)", margin: "8px 0" }}>
             389 kr<span style={{ fontSize: 18, color: "var(--muted)" }}>/mnd</span>
           </div>
-          <p className="muted" style={{ marginBottom: 18 }}>Første måned gratis. Ingen bindingstid, si opp når som helst.</p>
+          <p className="muted" style={{ marginBottom: 18 }}>14 dager gratis. Ingen bindingstid, si opp når som helst.</p>
           <Link href="/dashboard/login" className="btn" style={{ textDecoration: "none" }}>
             Kom i gang med Vipps
           </Link>

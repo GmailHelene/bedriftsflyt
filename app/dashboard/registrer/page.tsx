@@ -42,7 +42,7 @@ export default function Registrer({
 
       <div className="card" style={{ padding: 20, marginTop: 24 }}>
         <h1>Opprett konto</h1>
-        <p className="muted" style={{ marginTop: 4 }}>Første måned er gratis. Ingen bindingstid.</p>
+        <p className="muted" style={{ marginTop: 4 }}>14 dager gratis. Ingen bindingstid.</p>
 
         {searchParams.feil && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>

@@ -1019,3 +1019,40 @@ export async function hentAbonnement(slug: string): Promise<{ agreementId: strin
   const r = rows[0];
   return { agreementId: r?.abonnement_agreement_id ?? null, status: r?.abonnement_status ?? null };
 }
+
+// ---- Stripe-abonnement ----
+
+export async function settStripeAbonnement(
+  slug: string,
+  data: { customerId?: string | null; subscriptionId?: string | null; status: string }
+): Promise<boolean> {
+  if (!getPool()) return false;
+  await query(
+    `update businesses set
+       stripe_customer_id = coalesce($2, stripe_customer_id),
+       stripe_subscription_id = coalesce($3, stripe_subscription_id),
+       abonnement_status = $4
+     where slug = $1`,
+    [slug, data.customerId ?? null, data.subscriptionId ?? null, data.status]
+  );
+  return true;
+}
+
+// Oppdaterer status ut fra Stripe-webhook (slår opp på subscription-id).
+export async function oppdaterAbonnementForSub(subscriptionId: string, status: string): Promise<boolean> {
+  if (!getPool()) return false;
+  const rows = await query<{ slug: string }>(
+    "update businesses set abonnement_status = $2 where stripe_subscription_id = $1 returning slug",
+    [subscriptionId, status]
+  );
+  return rows.length > 0;
+}
+
+export async function hentStripeKunde(slug: string): Promise<string | null> {
+  if (!getPool()) return null;
+  const rows = await query<{ stripe_customer_id: string | null }>(
+    "select stripe_customer_id from businesses where slug = $1",
+    [slug]
+  );
+  return rows[0]?.stripe_customer_id ?? null;
+}

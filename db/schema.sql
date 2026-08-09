@@ -116,6 +116,9 @@ alter table invoices add column if not exists faktura_nr int;
 alter table invoices add column if not exists forfall_dato date;
 alter table invoices add column if not exists kjoper_navn text;
 alter table invoices add column if not exists mva_ore int not null default 0;
+-- Stripe-abonnement.
+alter table businesses add column if not exists stripe_customer_id text;
+alter table businesses add column if not exists stripe_subscription_id text;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'no_overlapping_bookings') then
     alter table bookings

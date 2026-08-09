@@ -22,7 +22,7 @@ export default function Vilkar() {
       <p>Bedriftsflyt er et digitalt verktøy for booking, fakturering, betaling og kundedialog for små bedrifter, levert av Bedriftsflyt (enkeltpersonforetak, org.nr 927 889 404).</p>
 
       <h2 style={h2}>2. Abonnement og pris</h2>
-      <p>Tjenesten koster 389 kr per måned. Første måned er gratis. Det er ingen bindingstid.</p>
+      <p>Tjenesten koster 389 kr per måned. De første 14 dagene er gratis. Det er ingen bindingstid, og du kan si opp når som helst.</p>
 
       <h2 style={h2}>3. Betaling og fornyelse</h2>
       <p>Betaling skjer via Vipps. Abonnementet fornyes automatisk hver måned inntil det sies opp.</p>

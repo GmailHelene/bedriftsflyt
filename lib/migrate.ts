@@ -50,6 +50,9 @@ const ALTERS = [
   "alter table invoices add column if not exists forfall_dato date",
   "alter table invoices add column if not exists kjoper_navn text",
   "alter table invoices add column if not exists mva_ore int not null default 0",
+  // Stripe-abonnement (Bedriftsflyt-abonnementet).
+  "alter table businesses add column if not exists stripe_customer_id text",
+  "alter table businesses add column if not exists stripe_subscription_id text",
 ];
 
 // Demo-bedrifter så eksempelsidene er ekte bookbare (book → e-post → avbestill).

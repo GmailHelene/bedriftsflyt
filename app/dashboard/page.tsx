@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
-import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kjorTrekk, kansellerBookingDash } from "./actions";
+import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kansellerBookingDash } from "./actions";
 import DashboardNav from "./DashboardNav";
 
 export const metadata = { title: "Dashbord · Bedriftsflyt" };
@@ -73,6 +73,12 @@ export default async function Dashboard({
   if (!b) redirect("/dashboard/login");
 
   const erDev = process.env.NODE_ENV !== "production";
+  const aktivtAbo = ["trialing", "active", "past_due"].includes(abonnement.status ?? "");
+  const aboStatusVis =
+    ({ trialing: "prøveperiode (gratis)", active: "aktivt", past_due: "betaling mangler", canceled: "sagt opp" } as Record<
+      string,
+      string
+    >)[abonnement.status ?? ""] ?? (abonnement.status ?? "ikke startet");
 
   return (
     <main className="wrap">
@@ -336,46 +342,40 @@ export default async function Dashboard({
           «Betal med Vipps» krever Vipps-nøkler. «Marker betalt (test)» viser skatt-avsetningen (35 %) uten Vipps.
         </p>
       </div>
-      {/* Abonnement (Vipps Recurring) */}
+      {/* Abonnement (Stripe) */}
       <div className="card" style={{ padding: 20, marginTop: 16 }}>
         <h2>Abonnement</h2>
-        <p className="muted">Bedriftsflyt · 389 kr/mnd</p>
+        <p className="muted">Bedriftsflyt · 389 kr/mnd · 14 dager gratis, ingen bindingstid</p>
         <p style={{ marginTop: 6 }}>
-          Status: <b>{abonnement.status ?? "ikke startet"}</b>
+          Status: <b>{aboStatusVis}</b>
         </p>
         <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
-          {abonnement.status === "ACTIVE" ? (
-            erDev ? (
-              <form action={kjorTrekk}>
-                <button type="submit" className="btn" style={{ width: "auto", padding: "10px 16px" }}>
-                  Trekk 389 nå (test)
-                </button>
-              </form>
-            ) : (
-              <span className="muted">Abonnement aktivt ✓</span>
-            )
-          ) : (
-            <a
-              href="/api/vipps/abonnement/start"
-              className="btn"
-              style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}
-            >
-              Start abonnement med Vipps
+          {aktivtAbo ? (
+            <a href="/api/stripe/portal" className="btn" style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}>
+              Administrer abonnement
             </a>
-          )}
-          {abonnement.agreementId && (
-            <a href="/api/vipps/abonnement/status" className="muted" style={{ fontSize: 14 }}>
-              Oppdater status
+          ) : (
+            <a href="/api/stripe/checkout" className="btn" style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}>
+              Start gratis prøve (14 dager)
             </a>
           )}
         </div>
-        {searchParams.abonnement === "mangler" && (
-          <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-            Vipps er ikke konfigurert ennå (mangler nøkler).
+        {searchParams.abonnement === "ok" && (
+          <p style={{ color: "var(--good)", fontWeight: 600, fontSize: 13, marginTop: 10 }}>
+            Takk! Abonnementet er i gang. De første 14 dagene er gratis.
           </p>
         )}
+        {searchParams.abonnement === "avbrutt" && (
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Du avbrøt. Ingenting er trukket.</p>
+        )}
+        {searchParams.abonnement === "mangler" && (
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Stripe er ikke konfigurert ennå (mangler nøkler).</p>
+        )}
+        {(searchParams.abonnement === "feil" || searchParams.abonnement === "ingen") && (
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Noe gikk galt. Prøv igjen.</p>
+        )}
         <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          Krever Vipps Recurring aktivert i portalen. Månedstrekket kjøres normalt av en planlagt jobb.
+          Kortbetaling via Stripe. Gratis i 14 dager, deretter 389 kr/mnd. Si opp når som helst under «Administrer abonnement».
         </p>
       </div>
     </main>
