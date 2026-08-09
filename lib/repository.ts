@@ -1048,6 +1048,22 @@ export async function oppdaterAbonnementForSub(subscriptionId: string, status: s
   return rows.length > 0;
 }
 
+// Kortfri prøveperiode: 14 dager fra registrering (regnes fra created_at).
+export async function hentProveperiode(
+  slug: string
+): Promise<{ dagerIgjen: number; utlopt: boolean; status: string | null }> {
+  if (!getPool()) return { dagerIgjen: 14, utlopt: false, status: null };
+  const rows = await query<{ dager: number; status: string | null }>(
+    `select ceil(extract(epoch from ((created_at + interval '14 days') - now())) / 86400)::int as dager,
+            abonnement_status as status
+       from businesses where slug = $1`,
+    [slug]
+  );
+  const r = rows[0];
+  const dager = r ? Math.max(0, Number(r.dager)) : 0;
+  return { dagerIgjen: dager, utlopt: dager <= 0, status: r?.status ?? null };
+}
+
 export async function hentStripeKunde(slug: string): Promise<string | null> {
   if (!getPool()) return null;
   const rows = await query<{ stripe_customer_id: string | null }>(

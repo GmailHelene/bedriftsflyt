@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
-import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement } from "@/lib/repository";
+import { hentBedrift, hentBookinger, hentFakturaer, hentSkattAvsatt, hentAbonnement, hentProveperiode } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { lagreProfil, nyTjeneste, fjernTjeneste, nyFaktura, markerBetaltTest, kansellerBookingDash } from "./actions";
 import DashboardNav from "./DashboardNav";
@@ -33,6 +33,7 @@ export default async function Dashboard({
   let fakturaer: Awaited<ReturnType<typeof hentFakturaer>> = [];
   let skattAvsatt = 0;
   let abonnement: Awaited<ReturnType<typeof hentAbonnement>> = { agreementId: null, status: null };
+  let prove: Awaited<ReturnType<typeof hentProveperiode>> = { dagerIgjen: 14, utlopt: false, status: null };
   let dbFeil = false;
   let feilMelding = "";
   try {
@@ -42,6 +43,7 @@ export default async function Dashboard({
       fakturaer = await hentFakturaer(slug);
       skattAvsatt = await hentSkattAvsatt(slug);
       abonnement = await hentAbonnement(slug);
+      prove = await hentProveperiode(slug);
     }
   } catch (e) {
     console.error("[dashboard] datahenting feilet:", e instanceof Error ? e.message : e);
@@ -86,6 +88,31 @@ export default async function Dashboard({
 
       <h1 style={{ marginTop: 24 }}>Hei, {b.navn}</h1>
       <p className="muted">Din arbeidsflate.</p>
+
+      {!aktivtAbo && (
+        <div
+          className="card"
+          style={{
+            padding: "10px 14px",
+            marginTop: 14,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            alignItems: "center",
+            borderColor: prove.utlopt ? "var(--accent)" : "var(--line)",
+            background: prove.utlopt ? "var(--accent-soft)" : "var(--surface)",
+          }}
+        >
+          <span style={{ fontSize: 13.5 }}>
+            {prove.utlopt
+              ? "Den gratis prøveperioden er over."
+              : `Gratis prøveperiode: ${prove.dagerIgjen} ${prove.dagerIgjen === 1 ? "dag" : "dager"} igjen — ingen kort kreves.`}
+          </span>
+          <a href="/api/stripe/checkout" style={{ fontSize: 13.5, marginLeft: "auto", fontWeight: 600 }}>
+            Start abonnement →
+          </a>
+        </div>
+      )}
 
       {!dbPa && (
         <div className="card" style={{ padding: 14, marginTop: 16, borderColor: "var(--accent)" }}>
@@ -345,25 +372,51 @@ export default async function Dashboard({
       {/* Abonnement (Stripe) */}
       <div className="card" style={{ padding: 20, marginTop: 16 }}>
         <h2>Abonnement</h2>
-        <p className="muted">Bedriftsflyt · 389 kr/mnd · 14 dager gratis, ingen bindingstid</p>
-        <p style={{ marginTop: 6 }}>
-          Status: <b>{aboStatusVis}</b>
-        </p>
-        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
-          {aktivtAbo ? (
-            <a href="/api/stripe/portal" className="btn" style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}>
+        {aktivtAbo ? (
+          <>
+            <p className="muted">Bedriftsflyt · 389 kr/mnd · ingen bindingstid</p>
+            <p style={{ marginTop: 6 }}>
+              Status: <b>{aboStatusVis}</b>
+            </p>
+            <a
+              href="/api/stripe/portal"
+              className="btn"
+              style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
+            >
               Administrer abonnement
             </a>
-          ) : (
-            <a href="/api/stripe/checkout" className="btn" style={{ width: "auto", padding: "10px 16px", textDecoration: "none" }}>
-              Start gratis prøve (14 dager)
+          </>
+        ) : prove.utlopt ? (
+          <>
+            <p style={{ marginTop: 4 }}>Den gratis prøveperioden er over.</p>
+            <p className="muted" style={{ marginTop: 4 }}>Start abonnement (389 kr/mnd) for å fortsette. Ingen bindingstid.</p>
+            <a
+              href="/api/stripe/checkout"
+              className="btn"
+              style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
+            >
+              Start abonnement
             </a>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            <p style={{ marginTop: 4 }}>
+              <b style={{ color: "var(--good)" }}>Gratis prøveperiode</b> — {prove.dagerIgjen} {prove.dagerIgjen === 1 ? "dag" : "dager"} igjen.
+            </p>
+            <p className="muted" style={{ marginTop: 4, maxWidth: "56ch" }}>
+              Ingen kort kreves. Du kan bruke alt fritt. Vil du fortsette etter prøveperioden, starter du abonnementet når du er klar.
+            </p>
+            <a
+              href="/api/stripe/checkout"
+              className="btn"
+              style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
+            >
+              Start abonnement (389 kr/mnd)
+            </a>
+          </>
+        )}
         {searchParams.abonnement === "ok" && (
-          <p style={{ color: "var(--good)", fontWeight: 600, fontSize: 13, marginTop: 10 }}>
-            Takk! Abonnementet er i gang. De første 14 dagene er gratis.
-          </p>
+          <p style={{ color: "var(--good)", fontWeight: 600, fontSize: 13, marginTop: 10 }}>Takk! Abonnementet er i gang.</p>
         )}
         {searchParams.abonnement === "avbrutt" && (
           <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Du avbrøt. Ingenting er trukket.</p>
@@ -374,9 +427,6 @@ export default async function Dashboard({
         {(searchParams.abonnement === "feil" || searchParams.abonnement === "ingen") && (
           <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Noe gikk galt. Prøv igjen.</p>
         )}
-        <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          Kortbetaling via Stripe. Gratis i 14 dager, deretter 389 kr/mnd. Si opp når som helst under «Administrer abonnement».
-        </p>
       </div>
     </main>
   );

@@ -27,7 +27,8 @@ export async function opprettCheckout(input: {
   body.set("mode", "subscription");
   body.set("line_items[0][price]", process.env.STRIPE_PRICE_ID as string);
   body.set("line_items[0][quantity]", "1");
-  body.set("subscription_data[trial_period_days]", "14");
+  // Ingen Stripe-trial her: de 14 gratis dagene er kortfrie og gis ved registrering.
+  // Å starte abonnement = begynne å betale (389 kr/mnd).
   body.set("success_url", input.successUrl);
   body.set("cancel_url", input.cancelUrl);
   body.set("client_reference_id", input.slug);
