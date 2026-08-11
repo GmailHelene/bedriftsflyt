@@ -448,6 +448,20 @@ export async function lagreChatMelding(slug: string, rolle: "user" | "assistant"
   );
 }
 
+// Returnerer bedriftens varsel-e-post KUN hvis den ikke er varslet siste 6 timer (throttling).
+// Atomisk: setter siste_chat_varsel = now() samtidig, så vi ikke spammer.
+export async function varsleChatOmMulig(slug: string): Promise<string | null> {
+  if (!getPool()) return null;
+  const rows = await query<{ varsel_epost: string }>(
+    `update businesses set siste_chat_varsel = now()
+      where slug = $1 and varsel_epost is not null
+        and (siste_chat_varsel is null or siste_chat_varsel < now() - interval '6 hours')
+      returning varsel_epost`,
+    [slug]
+  );
+  return rows[0]?.varsel_epost ?? null;
+}
+
 export type ChatLogg = { rolle: string; tekst: string; naar: string };
 
 export async function hentSamtaler(slug: string, grense = 100): Promise<ChatLogg[]> {

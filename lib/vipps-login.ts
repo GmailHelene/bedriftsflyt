@@ -55,6 +55,7 @@ export async function bytteKode(opts: { code: string; redirectUri: string }): Pr
     headers: {
       "content-type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${basic}`, // client_secret_basic
+      "Ocp-Apim-Subscription-Key": env.VIPPS_SUBSCRIPTION_KEY ?? "",
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
@@ -70,7 +71,10 @@ export async function bytteKode(opts: { code: string; redirectUri: string }): Pr
 export async function hentBruker(accessToken: string): Promise<{ sub: string; navn?: string; telefon?: string }> {
   const cfg = await hentOidcConfig();
   const res = await fetch(cfg.userinfo_endpoint, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Ocp-Apim-Subscription-Key": env.VIPPS_SUBSCRIPTION_KEY ?? "",
+    },
   });
   if (!res.ok) throw new Error(`Vipps userinfo feilet: ${res.status}`);
   const d = (await res.json()) as { sub: string; name?: string; phone_number?: string };

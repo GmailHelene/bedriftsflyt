@@ -55,6 +55,8 @@ const ALTERS = [
   "alter table businesses add column if not exists stripe_subscription_id text",
   // Marker at «prøveperioden går snart ut»-mail er sendt.
   "alter table businesses add column if not exists trial_paminnelse_sendt boolean not null default false",
+  // Throttling av chat-varsel til bedriften (maks én e-post per 6. time).
+  "alter table businesses add column if not exists siste_chat_varsel timestamptz",
 ];
 
 // Demo-bedrifter så eksempelsidene er ekte bookbare (book → e-post → avbestill).

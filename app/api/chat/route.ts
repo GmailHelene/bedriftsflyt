@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { hentBedrift, hentChatbotConfig, lagreChatMelding } from "@/lib/repository";
+import { hentBedrift, hentChatbotConfig, lagreChatMelding, varsleChatOmMulig } from "@/lib/repository";
 import { svarKunde, harKI } from "@/lib/chat";
 import { erRateLimited } from "@/lib/ratelimit";
+import { sendEpost } from "@/lib/email";
 
 export const runtime = "nodejs";
+
+const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string));
 
 const schema = z.object({
   slug: z.string().min(1),
@@ -44,8 +47,25 @@ export async function POST(req: NextRequest) {
     try {
       await lagreChatMelding(p.data.slug, "user", p.data.melding);
       await lagreChatMelding(p.data.slug, "assistant", svar);
+      // Varsle bedriften (throttlet: maks én e-post per 6. time).
+      const til = await varsleChatOmMulig(p.data.slug);
+      if (til) {
+        const base = process.env.APP_BASE_URL || "";
+        await sendEpost({
+          til,
+          emne: "En kunde chattet med assistenten din",
+          html:
+            `<p>En kunde stilte et spørsmål til KI-assistenten på siden din:</p>` +
+            `<blockquote style="border-left:3px solid #ccc;padding-left:10px;color:#555">${esc(p.data.melding)}</blockquote>` +
+            `<p>Assistenten svarte automatisk. Se alle samtalene: <a href="${base}/dashboard/samtaler">${base}/dashboard/samtaler</a></p>` +
+            `<p style="color:#888;font-size:12px">Du får maks én slik e-post hver 6. time.</p>`,
+          tekst:
+            `En kunde chattet med assistenten din: "${p.data.melding}"\n\n` +
+            `Se samtalene: ${base}/dashboard/samtaler`,
+        });
+      }
     } catch {
-      /* logging skal aldri velte svaret */
+      /* logging/varsel skal aldri velte svaret */
     }
     return NextResponse.json({ svar });
   } catch {
