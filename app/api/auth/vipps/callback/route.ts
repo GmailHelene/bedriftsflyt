@@ -8,6 +8,8 @@ export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
+  // Bruk APP_BASE_URL som redirect-base (req.url er localhost:8080 bak Railways proxy).
+  const origin = env.APP_BASE_URL ?? url.origin;
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const savedState = req.cookies.get(OIDC_STATE_COOKIE)?.value;
@@ -15,10 +17,9 @@ export async function GET(req: NextRequest) {
 
   // state må stemme (CSRF-vern)
   if (!code || !state || !savedState || state !== savedState) {
-    return NextResponse.redirect(new URL("/dashboard/login?feil=1", req.url), { status: 303 });
+    return NextResponse.redirect(new URL("/dashboard/login?feil=1", origin), { status: 303 });
   }
 
-  const origin = env.APP_BASE_URL ?? url.origin;
   const redirectUri = `${origin}/api/auth/vipps/callback`;
 
   try {
@@ -27,18 +28,18 @@ export async function GET(req: NextRequest) {
     const slug = await finnBedriftForEier(bruker.sub);
 
     if (slug) {
-      const res = NextResponse.redirect(new URL("/dashboard", req.url), { status: 303 });
+      const res = NextResponse.redirect(new URL("/dashboard", origin), { status: 303 });
       res.cookies.set(SESSION_COOKIE, signerSlug(slug), { httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: 60 * 60 * 8 });
       res.cookies.delete(OIDC_STATE_COOKIE);
       return res;
     }
 
     // Verifisert bruker, men ingen bedrift koblet ennå → send til koble-siden
-    const res = NextResponse.redirect(new URL("/dashboard/koble", req.url), { status: 303 });
+    const res = NextResponse.redirect(new URL("/dashboard/koble", origin), { status: 303 });
     res.cookies.set(VIPPS_SUB_COOKIE, bruker.sub, { httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: 600 });
     res.cookies.delete(OIDC_STATE_COOKIE);
     return res;
   } catch {
-    return NextResponse.redirect(new URL("/dashboard/login?feil=1", req.url), { status: 303 });
+    return NextResponse.redirect(new URL("/dashboard/login?feil=1", origin), { status: 303 });
   }
 }

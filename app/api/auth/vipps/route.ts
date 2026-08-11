@@ -8,11 +8,12 @@ export const runtime = "nodejs";
 
 // Starter Vipps Login (OIDC authorization code flow).
 export async function GET(req: NextRequest) {
+  const origin = env.APP_BASE_URL ?? new URL(req.url).origin;
+
   if (!vippsLoginKonfigurert()) {
-    return NextResponse.redirect(new URL("/dashboard/login?feil=vipps", req.url), { status: 303 });
+    return NextResponse.redirect(new URL("/dashboard/login?feil=vipps", origin), { status: 303 });
   }
 
-  const origin = env.APP_BASE_URL ?? new URL(req.url).origin;
   const redirectUri = `${origin}/api/auth/vipps/callback`;
   const state = crypto.randomUUID();
   const nonce = crypto.randomUUID();

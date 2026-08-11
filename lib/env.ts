@@ -21,8 +21,10 @@ const schema = z.object({
   VIPPS_SUBSCRIPTION_KEY: valgfriTekst,
   VIPPS_MSN: valgfriTekst,
   VIPPS_WEBHOOK_SECRET: valgfriTekst,
-  VIPPS_BASE_URL: z.preprocess(tomBlirUndefined, z.string().url().optional()),
-  APP_BASE_URL: z.preprocess(tomBlirUndefined, z.string().url().optional()),
+  // Base-URL-er: mykt validert (plain string) så en manglende https:// ikke tar ned hele deployen.
+  // Feil verdi gir bare at den ene funksjonen feiler, ikke at appen kræsjer.
+  VIPPS_BASE_URL: valgfriTekst,
+  APP_BASE_URL: valgfriTekst,
 });
 
 const parsed = schema.safeParse(process.env);
