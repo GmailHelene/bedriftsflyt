@@ -886,6 +886,38 @@ export async function settPassord(slug: string, hash: string): Promise<boolean> 
   return true;
 }
 
+// Sett/oppdater innloggings-e-post og/eller passord (så Vipps-brukere også kan bruke e-post+passord).
+export async function settLoginOpplysninger(
+  slug: string,
+  data: { epost?: string; passordHash?: string }
+): Promise<{ ok: boolean; grunn?: "epost" }> {
+  if (!getPool()) return { ok: false };
+  try {
+    if (data.epost !== undefined) {
+      await query("update businesses set epost = $2 where slug = $1", [slug, data.epost.toLowerCase() || null]);
+    }
+    if (data.passordHash) {
+      await query("update businesses set passord_hash = $2 where slug = $1", [slug, data.passordHash]);
+    }
+    return { ok: true };
+  } catch (e: unknown) {
+    if (typeof e === "object" && e !== null && (e as { code?: string }).code === "23505") {
+      return { ok: false, grunn: "epost" }; // e-posten er i bruk av en annen konto
+    }
+    throw e;
+  }
+}
+
+export async function hentLoginEpost(slug: string): Promise<{ epost: string | null; harPassord: boolean } | null> {
+  if (!getPool()) return null;
+  const rows = await query<{ epost: string | null; passord_hash: string | null }>(
+    "select epost, passord_hash from businesses where slug = $1",
+    [slug]
+  );
+  const r = rows[0];
+  return r ? { epost: r.epost, harPassord: Boolean(r.passord_hash) } : null;
+}
+
 // ---- Booking-kalender (ukesvisning) ----
 
 export type KalenderBooking = {

@@ -22,6 +22,7 @@ import {
   opprettBedriftMedPassord,
   finnBedriftMedEpost,
   settPassord,
+  settLoginOpplysninger,
   settProfilbilde,
   leggTilGalleribilde,
   slettGalleribilde,
@@ -135,6 +136,20 @@ export async function registrerBedrift(formData: FormData) {
   const res = await opprettBedrift({ navn, sted, slug, ownerSub: sub });
   if (!res.ok) redirect(`/dashboard/koble?feil=${res.grunn === "opptatt" ? "slug" : "ugyldig"}`);
 
+  // Valgfritt: e-post + passord, så de også kan logge inn uten Vipps neste gang (best-effort).
+  const epost = String(formData.get("epost") ?? "").trim();
+  const passord = String(formData.get("passord") ?? "");
+  if (epost || passord.length >= 8) {
+    try {
+      await settLoginOpplysninger(slug, {
+        epost: epost || undefined,
+        passordHash: passord.length >= 8 ? hashPassord(passord) : undefined,
+      });
+    } catch {
+      /* ignorer - bedriften er allerede opprettet via Vipps */
+    }
+  }
+
   cookies().set(SESSION_COOKIE, signerSlug(slug), {
     httpOnly: true,
     sameSite: "lax",
@@ -144,6 +159,21 @@ export async function registrerBedrift(formData: FormData) {
   });
   cookies().delete(VIPPS_SUB_COOKIE);
   redirect("/dashboard");
+}
+
+// Sett/oppdater innlogging (e-post + passord) fra Innstillinger - virker for både Vipps- og e-postkontoer.
+export async function lagreInnlogging(formData: FormData) {
+  const slug = getSessionSlug();
+  if (!slug) redirect("/dashboard/login");
+  const epost = String(formData.get("epost") ?? "").trim();
+  const passord = String(formData.get("passord") ?? "");
+  if (passord && passord.length < 8) redirect("/dashboard/oppsett?feil=passord");
+  const res = await settLoginOpplysninger(slug, {
+    epost: epost || undefined,
+    passordHash: passord.length >= 8 ? hashPassord(passord) : undefined,
+  });
+  if (!res.ok) redirect(`/dashboard/oppsett?feil=${res.grunn ?? "innlogging"}`);
+  redirect("/dashboard/oppsett?lagret=innlogging");
 }
 
 // Lagre hva KI-chatboten skal svare kundene (åpningstider, adresse, avbestilling, tone, FAQ).

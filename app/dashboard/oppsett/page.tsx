@@ -3,10 +3,10 @@ import Link from "next/link";
 import { getSessionSlug } from "@/lib/auth";
 import DashboardNav from "../DashboardNav";
 import KiForslag from "./KiForslag";
-import { hentBedrift, hentChatbotConfig } from "@/lib/repository";
+import { hentBedrift, hentChatbotConfig, hentLoginEpost } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { harKI } from "@/lib/chat";
-import { lagreOppsett, lagreApningstider, lagreDepositum, lagreVarsel, lagreFakturaOpplysninger } from "../actions";
+import { lagreOppsett, lagreApningstider, lagreDepositum, lagreVarsel, lagreFakturaOpplysninger, lagreInnlogging } from "../actions";
 
 export const metadata = { title: "Innstillinger · Bedriftsflyt" };
 
@@ -37,7 +37,7 @@ const DAGER: { dow: number; navn: string }[] = [
 export default async function Oppsett({
   searchParams,
 }: {
-  searchParams: { lagret?: string };
+  searchParams: { lagret?: string; feil?: string };
 }) {
   const slug = getSessionSlug();
   if (!slug) redirect("/dashboard/login");
@@ -47,6 +47,7 @@ export default async function Oppsett({
 
   const dbPa = harDatabase();
   const c = await hentChatbotConfig(slug);
+  const login = await hentLoginEpost(slug);
   const kiPa = harKI();
   const apen = b.apningstider;
 
@@ -75,8 +76,38 @@ export default async function Oppsett({
         </div>
       )}
 
+      {/* Innlogging */}
+      <form action={lagreInnlogging} className="card" style={{ padding: 20, marginTop: 20, display: "block" }}>
+        <h2>Innlogging</h2>
+        <p className="muted" style={{ fontSize: 13, marginTop: 2, maxWidth: "58ch" }}>
+          Sett e-post + passord, så kan du logge inn både med Vipps og med e-post.{" "}
+          {login?.epost ? `Nåværende e-post: ${login.epost}.` : "Ingen e-post-innlogging satt ennå."}
+        </p>
+        {searchParams.feil === "passord" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 8 }}>Passordet må være minst 8 tegn.</p>
+        )}
+        {searchParams.feil === "epost" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 8 }}>Den e-posten er allerede i bruk av en annen konto.</p>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+          <label>
+            <span className="muted" style={labelHint}>E-post</span>
+            <input name="epost" type="email" defaultValue={login?.epost ?? ""} placeholder="deg@epost.no" style={inputStyle} />
+          </label>
+          <label>
+            <span className="muted" style={labelHint}>
+              Nytt passord (minst 8 tegn){login?.harPassord ? " - la stå tomt for å beholde" : ""}
+            </span>
+            <input name="passord" type="password" minLength={8} style={inputStyle} />
+          </label>
+        </div>
+        <button className="btn" type="submit" style={{ marginTop: 16, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
+          Lagre innlogging
+        </button>
+      </form>
+
       {/* Åpningstider */}
-      <form action={lagreApningstider} className="card" style={{ padding: 20, marginTop: 20, display: "block" }}>
+      <form action={lagreApningstider} className="card" style={{ padding: 20, marginTop: 16, display: "block" }}>
         <h2>Åpningstider</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: 2 }}>
           Kundene kan booke innenfor disse tidene. Chatboten svarer det samme.

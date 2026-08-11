@@ -54,6 +54,19 @@ export default function Onboarding({ searchParams }: { searchParams: { feil?: st
               <input name="slug" placeholder="silje" required style={inputStyle} />
             </div>
           </label>
+
+          <label>
+            <span className="muted" style={{ fontSize: 13 }}>E-post (valgfritt)</span>
+            <input name="epost" type="email" placeholder="deg@epost.no" style={inputStyle} />
+          </label>
+          <label>
+            <span className="muted" style={{ fontSize: 13 }}>Passord (valgfritt, minst 8 tegn)</span>
+            <input name="passord" type="password" minLength={8} style={inputStyle} />
+          </label>
+          <p className="muted" style={{ fontSize: 12 }}>
+            Setter du e-post + passord, kan du logge inn begge veier senere - både med Vipps og med e-post + passord.
+          </p>
+
           <button className="btn" type="submit" style={{ marginTop: 4 }}>
             Opprett og fortsett
           </button>
