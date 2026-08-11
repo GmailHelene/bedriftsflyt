@@ -317,6 +317,27 @@ export async function registrerMedEpost(formData: FormData) {
   }
   if (!utfall.ok) redirect(`/dashboard/registrer?feil=${utfall.grunn ?? "ugyldig"}`);
 
+  // Velkomstmail (best-effort - skal aldri velte registreringen).
+  try {
+    const base = process.env.APP_BASE_URL || "";
+    const profil = `${base}/${slug}`;
+    await sendEpost({
+      til: epost,
+      emne: "Velkommen til Bedriftsflyt",
+      html:
+        `<p>Hei, og velkommen!</p>` +
+        `<p>Bedriften din er opprettet. Din offentlige side er her:</p>` +
+        `<p><a href="${profil}">${profil}</a></p>` +
+        `<p>Kom i gang: legg inn tjenestene og prisene dine, sett åpningstider, og del lenka i Instagram-bio eller på Google. Du har 14 dager gratis, uten binding.</p>` +
+        `<p>Lykke til!</p>`,
+      tekst:
+        `Hei, og velkommen!\n\nBedriften din er opprettet. Din side: ${profil}\n\n` +
+        `Kom i gang: legg inn tjenester og priser, sett åpningstider, og del lenka. 14 dager gratis, uten binding.\n\nLykke til!`,
+    });
+  } catch {
+    /* ignorer */
+  }
+
   // Sesjonssignering (krever SESSION_SECRET i produksjon).
   try {
     settSesjon(slug);

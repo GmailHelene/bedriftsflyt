@@ -1,7 +1,12 @@
 // Sender e-postpåminnelse ~dagen før timen. Kjøres av en daglig cron (Railway eller cron-job.org)
 // som treffer denne URL-en med hemmeligheten i CRON_SECRET. Beskyttet mot åpen tilgang.
 import { NextRequest, NextResponse } from "next/server";
-import { hentBookingerForPaminnelse, markerPaminnelseSendt } from "@/lib/repository";
+import {
+  hentBookingerForPaminnelse,
+  markerPaminnelseSendt,
+  hentTrialSluttSnart,
+  markerTrialPaminnelseSendt,
+} from "@/lib/repository";
 import { sendEpost } from "@/lib/email";
 import { signerBooking } from "@/lib/token";
 
@@ -58,7 +63,31 @@ async function kjor(req: NextRequest) {
   }
 
   await markerPaminnelseSendt(behandlet);
-  return NextResponse.json({ ok: true, funnet: liste.length, sendt });
+
+  // «Prøveperioden går snart ut»-varsler.
+  const trial = await hentTrialSluttSnart();
+  const trialSendt: string[] = [];
+  for (const t of trial) {
+    const dager = Math.max(1, t.dagerIgjen);
+    const dagtekst = dager === 1 ? "dag" : "dager";
+    const html =
+      `<p>Hei,</p>` +
+      `<p>Den gratis prøveperioden din på Bedriftsflyt går ut om ${dager} ${dagtekst}.</p>` +
+      `<p>Vil du fortsette uten avbrudd, start abonnementet (389 kr/mnd, ingen binding): <a href="${base}/dashboard">${base}/dashboard</a></p>` +
+      `<p>Ingen kort er trukket så langt, og du kan si opp når som helst.</p>`;
+    const tekst =
+      `Hei,\n\nDen gratis prøveperioden din på Bedriftsflyt går ut om ${dager} ${dagtekst}.\n` +
+      `Start abonnement for å fortsette: ${base}/dashboard\n\nIngen kort er trukket, og du kan si opp når som helst.`;
+    try {
+      const r = await sendEpost({ til: t.epost, emne: "Prøveperioden din går snart ut", html, tekst });
+      if (r.ok) trialSendt.push(t.slug);
+    } catch (e) {
+      console.error("[trial-varsel] feilet:", e instanceof Error ? e.message : e);
+    }
+  }
+  await markerTrialPaminnelseSendt(trialSendt);
+
+  return NextResponse.json({ ok: true, funnet: liste.length, sendt, trialVarsler: trialSendt.length });
 }
 
 export async function POST(req: NextRequest) {

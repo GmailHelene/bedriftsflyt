@@ -53,6 +53,8 @@ const ALTERS = [
   // Stripe-abonnement (Bedriftsflyt-abonnementet).
   "alter table businesses add column if not exists stripe_customer_id text",
   "alter table businesses add column if not exists stripe_subscription_id text",
+  // Marker at «prøveperioden går snart ut»-mail er sendt.
+  "alter table businesses add column if not exists trial_paminnelse_sendt boolean not null default false",
 ];
 
 // Demo-bedrifter så eksempelsidene er ekte bookbare (book → e-post → avbestill).

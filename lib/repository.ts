@@ -506,6 +506,26 @@ export async function markerPaminnelseSendt(ids: string[]): Promise<void> {
   await query("update bookings set paminnelse_sendt = true where id = any($1::uuid[])", [ids]);
 }
 
+// Bedrifter med prøveperiode som går ut innen 3 dager, uten aktivt abonnement, som ikke er varslet.
+export type TrialVarsel = { slug: string; epost: string; navn: string; dagerIgjen: number };
+export async function hentTrialSluttSnart(): Promise<TrialVarsel[]> {
+  if (!getPool()) return [];
+  return query<TrialVarsel>(
+    `select slug, epost, navn,
+            ceil(extract(epoch from ((created_at + interval '14 days') - now())) / 86400)::int as "dagerIgjen"
+       from businesses
+      where epost is not null
+        and coalesce(trial_paminnelse_sendt, false) = false
+        and coalesce(abonnement_status, '') not in ('active', 'trialing', 'past_due')
+        and (created_at + interval '14 days') between now() and now() + interval '3 days'`
+  );
+}
+
+export async function markerTrialPaminnelseSendt(slugs: string[]): Promise<void> {
+  if (!getPool() || slugs.length === 0) return;
+  await query("update businesses set trial_paminnelse_sendt = true where slug = any($1::text[])", [slugs]);
+}
+
 // ---- GDPR: dataminimering ----
 // Anonymiserer kundedata eldre enn 12 mnd og sletter gamle chat-logger.
 // Fakturaer røres IKKE (bokføringsloven krever 5 års oppbevaring).
