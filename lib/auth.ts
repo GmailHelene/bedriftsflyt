@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 export const SESSION_COOKIE = "bf_session";
 export const VIPPS_SUB_COOKIE = "bf_vipps_sub"; // midlertidig, mens bruker kobler bedrift
 export const OIDC_STATE_COOKIE = "bf_oidc_state";
+export const VIPPS_KOBLE_COOKIE = "bf_vipps_koble"; // slug som skal kobles til Vipps (fra Innstillinger)
 
 function secret(): string {
   const s = process.env.SESSION_SECRET || process.env.DASHBOARD_DEV_PASSWORD;

@@ -63,7 +63,7 @@ export default async function Oppsett({
 
       {searchParams.lagret && (
         <div className="card" style={{ padding: 12, marginTop: 16, borderColor: "var(--good)", background: "var(--good-soft)" }}>
-          <b style={{ color: "var(--good)" }}>Lagret ✓</b>
+          <b style={{ color: "var(--good)" }}>{searchParams.lagret === "vipps" ? "Vipps koblet ✓" : "Lagret ✓"}</b>
         </div>
       )}
 
@@ -89,6 +89,12 @@ export default async function Oppsett({
         {searchParams.feil === "epost" && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 8 }}>Den e-posten er allerede i bruk av en annen konto.</p>
         )}
+        {searchParams.feil === "vippsbrukt" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 8 }}>Denne Vipps-brukeren er allerede koblet til en annen bedrift.</p>
+        )}
+        {searchParams.feil === "vipps" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 8 }}>Vipps er ikke konfigurert ennå.</p>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
           <label>
             <span className="muted" style={labelHint}>E-post</span>
@@ -104,6 +110,23 @@ export default async function Oppsett({
         <button className="btn" type="submit" style={{ marginTop: 16, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
           Lagre innlogging
         </button>
+
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+          {login?.harVipps ? (
+            <p className="muted" style={{ fontSize: 13 }}>Vipps er koblet til kontoen ✓ - du kan logge inn med Vipps også.</p>
+          ) : (
+            <>
+              <p className="muted" style={{ fontSize: 13, marginBottom: 8 }}>Vil du også kunne logge inn med Vipps (BankID)?</p>
+              <a
+                href="/api/auth/vipps/koble"
+                className="btn"
+                style={{ width: "auto", padding: "10px 16px", textDecoration: "none", background: "#FF5B24", display: "inline-flex" }}
+              >
+                Koble til Vipps
+              </a>
+            </>
+          )}
+        </div>
       </form>
 
       {/* Åpningstider */}

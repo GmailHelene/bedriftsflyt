@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bytteKode, hentBruker } from "@/lib/vipps-login";
-import { finnBedriftForEier } from "@/lib/repository";
-import { SESSION_COOKIE, VIPPS_SUB_COOKIE, OIDC_STATE_COOKIE, signerSlug } from "@/lib/auth";
+import { finnBedriftForEier, koblVippsTilBedrift } from "@/lib/repository";
+import { SESSION_COOKIE, VIPPS_SUB_COOKIE, OIDC_STATE_COOKIE, VIPPS_KOBLE_COOKIE, signerSlug } from "@/lib/auth";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -25,6 +25,20 @@ export async function GET(req: NextRequest) {
   try {
     const token = await bytteKode({ code, redirectUri });
     const bruker = await hentBruker(token);
+
+    // «Koble til Vipps»-flyt: knytt Vipps-ID til den allerede innloggede bedriften.
+    const kobleSlug = req.cookies.get(VIPPS_KOBLE_COOKIE)?.value;
+    if (kobleSlug) {
+      const r = await koblVippsTilBedrift(kobleSlug, bruker.sub);
+      const res = NextResponse.redirect(
+        new URL(`/dashboard/oppsett?${r.ok ? "lagret=vipps" : "feil=vippsbrukt"}`, origin),
+        { status: 303 }
+      );
+      res.cookies.delete(OIDC_STATE_COOKIE);
+      res.cookies.delete(VIPPS_KOBLE_COOKIE);
+      return res;
+    }
+
     const slug = await finnBedriftForEier(bruker.sub);
 
     if (slug) {

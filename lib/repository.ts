@@ -820,6 +820,16 @@ export async function koblEierTilBedrift(sub: string, slug: string): Promise<boo
   return rows.length > 0;
 }
 
+// Kobler en Vipps-identitet til en eksisterende (innlogget) bedrift. Avviser hvis Vipps-ID-en
+// allerede tilhører en annen bedrift.
+export async function koblVippsTilBedrift(slug: string, sub: string): Promise<{ ok: boolean; grunn?: "brukt" }> {
+  if (!getPool()) return { ok: false };
+  const eksisterende = await query<{ slug: string }>("select slug from businesses where owner_vipps_sub = $1", [sub]);
+  if (eksisterende[0] && eksisterende[0].slug !== slug) return { ok: false, grunn: "brukt" };
+  await query("update businesses set owner_vipps_sub = $2, verifisert = true where slug = $1", [slug, sub]);
+  return { ok: true };
+}
+
 // Selvbetjent registrering: en ny bedrift opprettes av en Vipps-verifisert eier.
 export async function opprettBedrift(input: {
   navn: string;
@@ -908,14 +918,16 @@ export async function settLoginOpplysninger(
   }
 }
 
-export async function hentLoginEpost(slug: string): Promise<{ epost: string | null; harPassord: boolean } | null> {
+export async function hentLoginEpost(
+  slug: string
+): Promise<{ epost: string | null; harPassord: boolean; harVipps: boolean } | null> {
   if (!getPool()) return null;
-  const rows = await query<{ epost: string | null; passord_hash: string | null }>(
-    "select epost, passord_hash from businesses where slug = $1",
+  const rows = await query<{ epost: string | null; passord_hash: string | null; owner_vipps_sub: string | null }>(
+    "select epost, passord_hash, owner_vipps_sub from businesses where slug = $1",
     [slug]
   );
   const r = rows[0];
-  return r ? { epost: r.epost, harPassord: Boolean(r.passord_hash) } : null;
+  return r ? { epost: r.epost, harPassord: Boolean(r.passord_hash), harVipps: Boolean(r.owner_vipps_sub) } : null;
 }
 
 // ---- Booking-kalender (ukesvisning) ----
