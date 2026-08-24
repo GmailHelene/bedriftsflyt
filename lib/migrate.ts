@@ -69,13 +69,13 @@ const SEED = [
      values ('modum-bygg','Modum Bygg & Montering','Snekker og montering · fast pris på befaring','Modum', true, 4.8, 41, 'demo-modum','08:00','16:00','{1,2,3,4,5}', '{"accent":"#1f5f8b","coverFra":"#4a90c2","coverTil":"#1c4a6b"}'::jsonb)
    on conflict (slug) do nothing`,
   // Tjenester (silje)
-  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'klassisk', b.id, 'Klassiske vipper – nytt sett', 900, 90 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
-  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'volum', b.id, 'Volumvipper – nytt sett', 1200, 120 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
+  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'klassisk', b.id, 'Klassiske vipper - nytt sett', 900, 90 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
+  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'volum', b.id, 'Volumvipper - nytt sett', 1200, 120 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'pafyll', b.id, 'Påfyll vipper', 650, 60 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'bryn', b.id, 'Brynsløft', 750, 60 from businesses b where b.slug='silje' on conflict (business_id, id) do nothing`,
   // Tjenester (modum-bygg)
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'befaring', b.id, 'Befaring og pristilbud', 0, 45 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
-  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'timepris', b.id, 'Snekkerarbeid – timepris', 750, 60 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
+  `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'timepris', b.id, 'Snekkerarbeid - timepris', 750, 60 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'kjokken', b.id, 'Montering av kjøkken', 8500, 480 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
   `insert into services (id, business_id, navn, pris_kr, varighet_min) select 'listverk', b.id, 'Listverk og innerdører', 2500, 180 from businesses b where b.slug='modum-bygg' on conflict (business_id, id) do nothing`,
 ];

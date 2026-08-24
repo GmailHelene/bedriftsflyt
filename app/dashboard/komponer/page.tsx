@@ -18,7 +18,7 @@ export default function Komponer() {
 
       <h1 style={{ marginTop: 24 }}>KI-tekst</h1>
       <p className="muted" style={{ maxWidth: "56ch" }}>
-        Få hjelp til å skrive innlegg, meldinger og svar — i din tone, med dine tjenester. Du redigerer alltid før du
+        Få hjelp til å skrive innlegg, meldinger og svar, i din tone, med dine tjenester. Du redigerer alltid før du
         bruker teksten.
       </p>
 

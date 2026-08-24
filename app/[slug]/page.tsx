@@ -162,7 +162,7 @@ export default async function Page({
                 <img
                   key={i}
                   src={bilde}
-                  alt={`${b.navn} – arbeid ${i + 1}`}
+                  alt={`${b.navn} - arbeid ${i + 1}`}
                   loading="lazy"
                   style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, border: "1px solid var(--line)" }}
                 />

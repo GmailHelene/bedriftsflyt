@@ -39,7 +39,7 @@ export function formaterApningstider(a: { fra: string; til: string; dager: numbe
   const sammenhengende = dager.every((d, i) => i === 0 || d === dager[i - 1] + 1);
   const dagtekst =
     sammenhengende && dager.length > 1
-      ? `${UKEDAGER_FULL[dager[0]]}–${UKEDAGER_FULL[dager[dager.length - 1]]}`
+      ? `${UKEDAGER_FULL[dager[0]]}-${UKEDAGER_FULL[dager[dager.length - 1]]}`
       : dager.map((d) => UKEDAGER_KORT[d]).join(", ");
-  return `${dagtekst} ${a.fra}–${a.til}`;
+  return `${dagtekst} ${a.fra}-${a.til}`;
 }

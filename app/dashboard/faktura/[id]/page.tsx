@@ -58,7 +58,7 @@ export default async function FakturaSide({ params }: { params: { id: string } }
         <div style={{ display: "flex", gap: 32, marginTop: 24, flexWrap: "wrap" }}>
           <div>
             <div className="muted" style={{ fontSize: 12.5 }}>Faktura til</div>
-            <div style={{ fontWeight: 600 }}>{f.kjoper ?? "—"}</div>
+            <div style={{ fontWeight: 600 }}>{f.kjoper ?? "-"}</div>
           </div>
           <div>
             <div className="muted" style={{ fontSize: 12.5 }}>Fakturadato</div>

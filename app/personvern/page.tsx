@@ -19,16 +19,16 @@ export default function Personvern() {
       <p className="muted">Sist oppdatert: 8. august 2026</p>
 
       <h2 style={h2}>1. Behandlingsansvarlig</h2>
-      <p>Bedriftsflyt (enkeltpersonforetak, org.nr 927 889 404), post@bedriftsflyt.no, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Bedriftsflyt er databehandler.</p>
+      <p>Bedriftsflyt er et produkt fra Grønberg Tech Solutions (enkeltpersonforetak, org.nr 927 889 404). Grønberg Tech Solutions, post@bedriftsflyt.no, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Grønberg Tech Solutions er databehandler.</p>
 
       <h2 style={h2}>2. Hvilke opplysninger vi behandler</h2>
-      <p>Kontodata, betalingsopplysninger (håndteres av Vipps — vi lagrer ikke kortdata), samt booking- og kundedata som legges inn i tjenesten.</p>
+      <p>Kontodata, betalingsopplysninger (håndteres av Stripe, vi lagrer ikke kortdata), samt booking- og kundedata som legges inn i tjenesten.</p>
 
       <h2 style={h2}>3. Formål og grunnlag</h2>
       <p>Vi behandler opplysningene for å levere tjenesten (avtale, personvernforordningen art. 6.1.b). Vi selger ikke personopplysninger.</p>
 
       <h2 style={h2}>4. Databehandlere</h2>
-      <p>Vi bruker underleverandører til drift: hosting/database, KI-leverandør (Anthropic), betaling (Vipps) og SMS-leverandør. Databehandleravtaler inngås med hver av dem.</p>
+      <p>Vi bruker underleverandører til drift: hosting og database (Railway), KI-leverandør (Anthropic), betaling og abonnement (Stripe), innlogging (Vipps) og e-postleverandør (Brevo), som blant annet sender bookingbekreftelser og påminnelser på e-post. Databehandleravtale inngås med hver av dem.</p>
 
       <h2 style={h2}>5. Lagring</h2>
       <p>Opplysningene lagres så lenge kundeforholdet varer, og deretter kun så lenge loven krever.</p>

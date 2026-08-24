@@ -74,7 +74,9 @@ export default async function Dashboard({
   }
   if (!b) redirect("/dashboard/login");
 
-  const erDev = process.env.NODE_ENV !== "production";
+  // Test-snarveien «Marker betalt» vises kun utenfor produksjon (eller når den er eksplisitt
+  // slått på i et testmiljø). Selve server-handlingen markerBetaltTest vokter det samme.
+  const erDev = process.env.NODE_ENV !== "production" || process.env.ALLOW_TEST_BETALT === "1";
   const aktivtAbo = ["trialing", "active", "past_due"].includes(abonnement.status ?? "");
   const aboStatusVis =
     ({ trialing: "prøveperiode (gratis)", active: "aktivt", past_due: "betaling mangler", canceled: "sagt opp" } as Record<
@@ -106,7 +108,7 @@ export default async function Dashboard({
           <span style={{ fontSize: 13.5 }}>
             {prove.utlopt
               ? "Den gratis prøveperioden er over."
-              : `Gratis prøveperiode: ${prove.dagerIgjen} ${prove.dagerIgjen === 1 ? "dag" : "dager"} igjen — ingen kort kreves.`}
+              : `Gratis prøveperiode: ${prove.dagerIgjen} ${prove.dagerIgjen === 1 ? "dag" : "dager"} igjen, ingen kort kreves.`}
           </span>
           <a href="/api/stripe/checkout" style={{ fontSize: 13.5, marginLeft: "auto", fontWeight: 600 }}>
             Start abonnement →
@@ -401,7 +403,7 @@ export default async function Dashboard({
         ) : (
           <>
             <p style={{ marginTop: 4 }}>
-              <b style={{ color: "var(--good)" }}>Gratis prøveperiode</b> — {prove.dagerIgjen} {prove.dagerIgjen === 1 ? "dag" : "dager"} igjen.
+              <b style={{ color: "var(--good)" }}>Gratis prøveperiode</b> - {prove.dagerIgjen} {prove.dagerIgjen === 1 ? "dag" : "dager"} igjen.
             </p>
             <p className="muted" style={{ marginTop: 4, maxWidth: "56ch" }}>
               Ingen kort kreves. Du kan bruke alt fritt. Vil du fortsette etter prøveperioden, starter du abonnementet når du er klar.

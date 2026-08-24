@@ -10,10 +10,10 @@ export type KomponerType = "instagram" | "sms" | "anmeldelse" | "google";
 
 const OPPGAVER: Record<KomponerType, string> = {
   instagram:
-    "Skriv et kort, fristende Instagram-innlegg (maks 4 setninger), med 3–5 relevante norske emneknagger til slutt.",
+    "Skriv et kort, fristende Instagram-innlegg (maks 4 setninger), med 3-5 relevante norske emneknagger til slutt.",
   sms: "Skriv en kort, høflig SMS til en kunde (maks 2 setninger, ingen emojier, ingen emneknagger).",
   anmeldelse: "Skriv et varmt og profesjonelt svar på en kundeanmeldelse (maks 3 setninger).",
-  google: "Skriv en kort bedriftsbeskrivelse til Google Business-profilen (2–3 setninger).",
+  google: "Skriv en kort bedriftsbeskrivelse til Google Business-profilen (2-3 setninger).",
 };
 
 export async function komponer(

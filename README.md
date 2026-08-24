@@ -9,11 +9,13 @@ npm run dev
 ```
 Åpne http://localhost:3000 → klikk «Åpne Silje» for den offentlige profil-/booking-visningen.
 
-## Status (Milepæl 1 + 2 + start på Milepæl 3)
+## Status
 - ✅ Next.js-skjelett (App Router + TypeScript)
 - ✅ Offentlig profil + booking + `LocalBusiness`-SEO
 - ✅ Datamodell (`db/schema.sql`) + data-lag (`lib/repository.ts`) — **leverandør-uavhengig Postgres via `DATABASE_URL`**
-- ⏳ Neste: innlogging + bedrifts-dashbord, faktura + Vipps, KI-chatbot
+- ✅ Innlogging (Vipps) + bedrifts-dashbord
+- ✅ Faktura + betaling med Vipps + skatt-avsetning
+- ✅ KI-chatbot og KI-teksthjelp
 
 ## Database (valgfritt — appen kjører på mock uten den)
 Fungerer med **Railway Postgres**, Vercel Postgres, Neon eller Supabase — samme kode.

@@ -7,7 +7,7 @@ import { KameraIkon, StjerneIkon, SokIkon } from "@/app/icons";
 type KomponerType = "instagram" | "anmeldelse" | "google";
 
 const VALG: { type: KomponerType; Ikon: (p: SVGProps<SVGSVGElement> & { size?: number }) => JSX.Element; navn: string; hint: string }[] = [
-  { type: "instagram", Ikon: KameraIkon, navn: "Instagram-post", hint: "F.eks. ledige timer denne uka, eller en ny behandling" },
+  { type: "instagram", Ikon: KameraIkon, navn: "Instagram-post", hint: "F.eks. ledige timer denne uka, eller en ny tjeneste" },
   { type: "anmeldelse", Ikon: StjerneIkon, navn: "Svar på anmeldelse", hint: "Lim inn anmeldelsen du vil svare på" },
   { type: "google", Ikon: SokIkon, navn: "Google-beskrivelse", hint: "F.eks. hva som gjør deg spesiell" },
 ];

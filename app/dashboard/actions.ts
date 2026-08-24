@@ -106,7 +106,15 @@ export async function lagreFakturaOpplysninger(formData: FormData) {
 }
 
 // Dev/test-snarvei for å se skatt-avsetningen uten live Vipps. I produksjon skjer dette via webhook.
+// Vokter server-side, ikke bare i UI: i produksjon skal en ekte betaling ALLTID gå via Vipps,
+// slik at ingen kan markere en faktura som betalt uten reell betaling. Krev NODE_ENV != production,
+// og la ALLOW_TEST_BETALT="1" åpne den eksplisitt i et ikke-prod testmiljø ved behov.
 export async function markerBetaltTest(formData: FormData) {
+  const testTillatt = process.env.NODE_ENV !== "production" || process.env.ALLOW_TEST_BETALT === "1";
+  if (!testTillatt) {
+    console.warn("[markerBetaltTest] Avvist i produksjon - betaling må gå via Vipps.");
+    redirect("/dashboard");
+  }
   const slug = getSessionSlug();
   if (!slug) redirect("/dashboard/login");
   const reference = String(formData.get("reference") ?? "");

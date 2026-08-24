@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Salgsvilkår",
-  description: "Salgsvilkår for Bedriftsflyt — abonnement, betaling, oppsigelse og ansvar.",
+  description: "Salgsvilkår for Bedriftsflyt: abonnement, betaling, oppsigelse og ansvar.",
 };
 
 const h2: React.CSSProperties = { fontFamily: "Georgia, serif", fontSize: 18, margin: "22px 0 6px" };
@@ -19,13 +19,13 @@ export default function Vilkar() {
       <p className="muted">Sist oppdatert: 8. august 2026</p>
 
       <h2 style={h2}>1. Om tjenesten</h2>
-      <p>Bedriftsflyt er et digitalt verktøy for booking, fakturering, betaling og kundedialog for små bedrifter, levert av Bedriftsflyt (enkeltpersonforetak, org.nr 927 889 404).</p>
+      <p>Bedriftsflyt er et digitalt verktøy for booking, fakturering, betaling og kundedialog for små bedrifter. Bedriftsflyt er et produkt fra Grønberg Tech Solutions (enkeltpersonforetak, org.nr 927 889 404).</p>
 
       <h2 style={h2}>2. Abonnement og pris</h2>
       <p>Tjenesten koster 389 kr per måned. De første 14 dagene er gratis. Det er ingen bindingstid, og du kan si opp når som helst.</p>
 
       <h2 style={h2}>3. Betaling og fornyelse</h2>
-      <p>Betaling skjer via Vipps. Abonnementet fornyes automatisk hver måned inntil det sies opp.</p>
+      <p>Betaling skjer via Stripe. Abonnementet fornyes automatisk hver måned inntil det sies opp.</p>
 
       <h2 style={h2}>4. Oppsigelse</h2>
       <p>Du kan si opp når som helst. Oppsigelsen gjelder ut inneværende betalte periode. Det gis ikke refusjon for påbegynt periode.</p>

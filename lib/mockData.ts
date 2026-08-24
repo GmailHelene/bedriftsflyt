@@ -56,8 +56,8 @@ export const bedrifter: Bedrift[] = [
     rating: 4.9,
     antallVurderinger: 87,
     tjenester: [
-      { id: "klassisk", navn: "Klassiske vipper – nytt sett", prisKr: 900, varighetMin: 90 },
-      { id: "volum", navn: "Volumvipper – nytt sett", prisKr: 1200, varighetMin: 120 },
+      { id: "klassisk", navn: "Klassiske vipper - nytt sett", prisKr: 900, varighetMin: 90 },
+      { id: "volum", navn: "Volumvipper - nytt sett", prisKr: 1200, varighetMin: 120 },
       { id: "pafyll", navn: "Påfyll vipper", prisKr: 650, varighetMin: 60 },
       { id: "bryn", navn: "Brynsløft", prisKr: 750, varighetMin: 60 },
     ],
@@ -74,7 +74,7 @@ export const bedrifter: Bedrift[] = [
     antallVurderinger: 41,
     tjenester: [
       { id: "befaring", navn: "Befaring og pristilbud", prisKr: 0, varighetMin: 45 },
-      { id: "timepris", navn: "Snekkerarbeid – timepris", prisKr: 750, varighetMin: 60 },
+      { id: "timepris", navn: "Snekkerarbeid - timepris", prisKr: 750, varighetMin: 60 },
       { id: "kjokken", navn: "Montering av kjøkken", prisKr: 8500, varighetMin: 480 },
       { id: "listverk", navn: "Listverk og innerdører", prisKr: 2500, varighetMin: 180 },
     ],

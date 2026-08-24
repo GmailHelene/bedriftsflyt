@@ -30,7 +30,7 @@ export default async function Kunder() {
       <DashboardNav />
 
       <h1 style={{ marginTop: 24 }}>Kunder</h1>
-      <p className="muted">Alle som har booket hos deg — med historikk og dine egne notater.</p>
+      <p className="muted">Alle som har booket hos deg, med historikk og dine egne notater.</p>
 
       {!dbPa && (
         <div className="card" style={{ padding: 14, marginTop: 16, borderColor: "var(--accent)" }}>
@@ -124,7 +124,7 @@ export default async function Kunder() {
                       }}
                     >
                       <span style={{ color: "var(--accent-ink)", fontWeight: 600, whiteSpace: "nowrap" }}>{bk.naar}</span>
-                      <span style={{ flex: 1 }}>{bk.tjeneste ?? "—"}</span>
+                      <span style={{ flex: 1 }}>{bk.tjeneste ?? "-"}</span>
                     </li>
                   ))}
                 </ul>

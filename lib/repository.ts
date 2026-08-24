@@ -210,7 +210,7 @@ export async function hentBookinger(slug: string): Promise<DashBooking[]> {
   return rows.map((r) => ({
     id: r.id,
     naar: r.naar,
-    tjeneste: r.tjeneste ?? "—",
+    tjeneste: r.tjeneste ?? "-",
     kundeNavn: r.kunde_navn,
     kundeTelefon: r.kunde_telefon,
   }));

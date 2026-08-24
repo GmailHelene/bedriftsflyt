@@ -56,7 +56,7 @@ export default async function Kalender({
           ← Forrige
         </Link>
         <span style={{ fontFamily: "Georgia, serif", fontSize: 15, fontWeight: 600 }}>
-          {visDato(mandag)}–{visDato(leggTilDager(mandag, 6))}
+          {visDato(mandag)}-{visDato(leggTilDager(mandag, 6))}
         </span>
         <Link
           href={`/dashboard/kalender?uke=${neste}`}
@@ -133,7 +133,7 @@ export default async function Kalender({
                         {b.tid}
                       </span>
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        {b.tjeneste ?? "—"}
+                        {b.tjeneste ?? "-"}
                         <br />
                         <span className="muted" style={{ fontSize: 12.5 }}>{b.kunde ?? "Kunde"}</span>
                       </span>

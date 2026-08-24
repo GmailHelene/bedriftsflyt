@@ -29,7 +29,7 @@ export default function Onboarding({ searchParams }: { searchParams: { feil?: st
 
       <div className="card" style={{ padding: 20, marginTop: 24 }}>
         <h1>Opprett bedriften din</h1>
-        <p className="muted">Du er logget inn med Vipps ✓. Fyll inn det viktigste, så er du i gang — resten kan du endre senere.</p>
+        <p className="muted">Du er logget inn med Vipps ✓. Fyll inn det viktigste, så er du i gang, resten kan du endre senere.</p>
 
         {searchParams.feil === "slug" && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Den nettadressen er opptatt. Velg en annen.</p>
