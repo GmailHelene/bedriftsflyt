@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import crypto from "node:crypto";
+import { signerVerdi, verifiserVerdi } from "@gronbergtech/kundebox-sikker-kjerne";
 
 export const SESSION_COOKIE = "bf_session";
 export const VIPPS_SUB_COOKIE = "bf_vipps_sub"; // midlertidig, mens bruker kobler bedrift
@@ -19,25 +19,11 @@ function secret(): string {
 
 // Signerer slug så en manuelt satt cookie ikke kan forfalskes.
 export function signerSlug(slug: string): string {
-  const sig = crypto.createHmac("sha256", secret()).update(slug).digest("base64url");
-  return `${slug}.${sig}`;
+  return signerVerdi(slug, secret());
 }
 
 function verifiser(value: string | undefined): string | null {
-  if (!value) return null;
-  const i = value.lastIndexOf(".");
-  if (i < 1) return null;
-  const slug = value.slice(0, i);
-  const sig = value.slice(i + 1);
-  const forventet = crypto.createHmac("sha256", secret()).update(slug).digest("base64url");
-  try {
-    if (sig.length === forventet.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(forventet))) {
-      return slug;
-    }
-  } catch {
-    // ugyldig
-  }
-  return null;
+  return verifiserVerdi(value, secret());
 }
 
 export function getSessionSlug(): string | null {

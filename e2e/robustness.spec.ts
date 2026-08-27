@@ -36,28 +36,20 @@ test("Vipps-abonnement gir forståelig redirect, ikke en krasjside, uten nøkler
 });
 
 
-test("dev-innlogging stopper etter for mange feilforsøk (rate-limiting)", async ({ page }) => {
-  await page.goto("/dashboard/login");
+test("e-post-innlogging stopper etter for mange feilforsøk (rate-limiting)", async ({ page }) => {
+  const epost = `rate-test-${Date.now()}@eksempel.no`;
   for (let i = 0; i < 13; i++) {
-    await page.evaluate(async () => {
-      const form = new FormData();
-      form.set("slug", "silje");
-      form.set("passord", "feil-passord-" + Math.random());
-      await fetch("/api/login", { method: "POST", body: form, redirect: "manual" });
-    });
+    await page.goto("/dashboard/login");
+    await page.getByLabel("E-post").fill(epost);
+    await page.getByLabel("Passord").fill("feil-passord-" + i);
+    await page.getByRole("button", { name: "Logg inn" }).click();
+    await page.waitForLoadState("networkidle");
   }
-  // Forsøk nummer 14 bør nå rate-limiten (12/min) og sendes til login med feil=for-mange-forsok,
-  // uavhengig av om passordet var riktig.
-  const form = new FormData();
-  form.append("slug", "silje");
-  form.append("passord", "uansett");
+  // Forsøk nummer 14 med samme e-post bør nå rate-limiten (12/min), uavhengig
+  // av om passordet var riktig, og vise feil=for-mange-forsok.
   await page.goto("/dashboard/login");
-  await page.route("**/api/login", (route) => route.continue());
-  const req = await page.request.post("/api/login", {
-    form: { slug: "silje", passord: "uansett" },
-    maxRedirects: 0,
-  });
-  expect([303, 302]).toContain(req.status());
-  const location = req.headers()["location"] ?? "";
-  expect(location).toContain("feil=for-mange-forsok");
+  await page.getByLabel("E-post").fill(epost);
+  await page.getByLabel("Passord").fill("uansett-hva");
+  await page.getByRole("button", { name: "Logg inn" }).click();
+  await expect(page.getByText(/For mange forsøk/i)).toBeVisible();
 });
