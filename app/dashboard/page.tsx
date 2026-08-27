@@ -110,7 +110,7 @@ export default async function Dashboard({
               ? "Den gratis prøveperioden er over."
               : `Gratis prøveperiode: ${prove.dagerIgjen} ${prove.dagerIgjen === 1 ? "dag" : "dager"} igjen, ingen kort kreves.`}
           </span>
-          <a href="/api/stripe/checkout" style={{ fontSize: 13.5, marginLeft: "auto", fontWeight: 600 }}>
+          <a href="/api/vipps/abonnement/start" style={{ fontSize: 13.5, marginLeft: "auto", fontWeight: 600 }}>
             Start abonnement →
           </a>
         </div>
@@ -371,7 +371,7 @@ export default async function Dashboard({
           «Betal med Vipps» krever Vipps-nøkler. «Marker betalt (test)» viser skatt-avsetningen (35 %) uten Vipps.
         </p>
       </div>
-      {/* Abonnement (Stripe) */}
+      {/* Abonnement (Vipps) */}
       <div className="card" style={{ padding: 20, marginTop: 16 }}>
         <h2>Abonnement</h2>
         {aktivtAbo ? (
@@ -380,20 +380,16 @@ export default async function Dashboard({
             <p style={{ marginTop: 6 }}>
               Status: <b>{aboStatusVis}</b>
             </p>
-            <a
-              href="/api/stripe/portal"
-              className="btn"
-              style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
-            >
-              Administrer abonnement
-            </a>
+            <p className="muted" style={{ marginTop: 8, maxWidth: "56ch" }}>
+              Vil du si opp? Åpne Vipps-appen, gå til «Faste betalinger», og avslutt avtalen med Bedriftsflyt der. Ingen oppsigelsestid.
+            </p>
           </>
         ) : prove.utlopt ? (
           <>
             <p style={{ marginTop: 4 }}>Den gratis prøveperioden er over.</p>
             <p className="muted" style={{ marginTop: 4 }}>Start abonnement (389 kr/mnd) for å fortsette. Ingen bindingstid.</p>
             <a
-              href="/api/stripe/checkout"
+              href="/api/vipps/abonnement/start"
               className="btn"
               style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
             >
@@ -409,7 +405,7 @@ export default async function Dashboard({
               Ingen kort kreves. Du kan bruke alt fritt. Vil du fortsette etter prøveperioden, starter du abonnementet når du er klar.
             </p>
             <a
-              href="/api/stripe/checkout"
+              href="/api/vipps/abonnement/start"
               className="btn"
               style={{ width: "auto", padding: "10px 16px", textDecoration: "none", marginTop: 12, display: "inline-flex" }}
             >
@@ -424,7 +420,7 @@ export default async function Dashboard({
           <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Du avbrøt. Ingenting er trukket.</p>
         )}
         {searchParams.abonnement === "mangler" && (
-          <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Stripe er ikke konfigurert ennå (mangler nøkler).</p>
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Vipps er ikke konfigurert ennå (mangler nøkler).</p>
         )}
         {(searchParams.abonnement === "feil" || searchParams.abonnement === "ingen") && (
           <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Noe gikk galt. Prøv igjen.</p>

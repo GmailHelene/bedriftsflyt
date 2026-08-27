@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 // booking/betaling feiler TRYGT (viser en forståelig feilmelding, krasjer
 // ikke) når DATABASE_URL/Vipps/Stripe-nøkler mangler, slik de gjør i CI.
 // Ekte "penger inn, faktura ut"-flyt krever en levende database og ekte
-// Vipps/Stripe-testnøkler, og må derfor testes manuelt mot et miljø som har
+// Vipps-testnøkler, og må derfor testes manuelt mot et miljø som har
 // dem satt opp, se README.
 
 test("booking feiler forståelig, ikke med en krasjside, uten database", async ({ page }) => {
@@ -35,11 +35,6 @@ test("Vipps-abonnement gir forståelig redirect, ikke en krasjside, uten nøkler
   await expect(page).toHaveURL(/\/dashboard\/login/);
 });
 
-test("Stripe-checkout gir forståelig redirect, ikke en krasjside, uten nøkler", async ({ page }) => {
-  const res = await page.goto("/api/stripe/checkout");
-  expect(res?.status()).toBeLessThan(500);
-  await expect(page).toHaveURL(/\/dashboard\/login/);
-});
 
 test("dev-innlogging stopper etter for mange feilforsøk (rate-limiting)", async ({ page }) => {
   await page.goto("/dashboard/login");

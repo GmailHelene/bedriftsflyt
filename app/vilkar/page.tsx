@@ -25,7 +25,7 @@ export default function Vilkar() {
       <p>Tjenesten koster 389 kr per måned. De første 14 dagene er gratis. Det er ingen bindingstid, og du kan si opp når som helst.</p>
 
       <h2 style={h2}>3. Betaling og fornyelse</h2>
-      <p>Betaling skjer via Stripe. Abonnementet fornyes automatisk hver måned inntil det sies opp.</p>
+      <p>Betaling skjer via Vipps (fast avtale). Abonnementet fornyes automatisk hver måned inntil det sies opp i Vipps-appen under «Faste betalinger».</p>
 
       <h2 style={h2}>4. Oppsigelse</h2>
       <p>Du kan si opp når som helst. Oppsigelsen gjelder ut inneværende betalte periode. Det gis ikke refusjon for påbegynt periode.</p>
