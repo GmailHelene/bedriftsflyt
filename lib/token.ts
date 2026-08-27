@@ -3,7 +3,7 @@
 import crypto from "node:crypto";
 
 function secret(): string {
-  const s = process.env.SESSION_SECRET || process.env.DASHBOARD_DEV_PASSWORD;
+  const s = process.env.SESSION_SECRET;
   if (s && s.length > 0) return s;
   if (process.env.NODE_ENV === "production") {
     throw new Error("SESSION_SECRET må settes i produksjon.");

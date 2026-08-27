@@ -12,7 +12,6 @@ const valgfriTekst = z.preprocess(tomBlirUndefined, z.string().min(1).optional()
 const schema = z.object({
   DATABASE_URL: z.preprocess(tomBlirUndefined, z.string().url().optional()),
   DATABASE_SSL: z.preprocess(tomBlirUndefined, z.enum(["true", "false"]).optional()),
-  DASHBOARD_DEV_PASSWORD: valgfriTekst,
   ANTHROPIC_API_KEY: valgfriTekst,
   BREVO_API_KEY: valgfriTekst,
   MAIL_DEFAULT_SENDER: valgfriTekst,
