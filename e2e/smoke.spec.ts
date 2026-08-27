@@ -17,11 +17,13 @@ test("velg behandling avslører dag-valg", async ({ page }) => {
 
 test("chat-knappen finnes på profilen", async ({ page }) => {
   await page.goto("/silje");
-  await expect(page.getByRole("button", { name: /Spør oss/ })).toBeVisible();
+  // Knappens tilgjengelighetsnavn er aria-label "Åpne chat", ikke synlig-teksten "Spør oss".
+  await expect(page.getByRole("button", { name: /Åpne chat/ })).toBeVisible();
 });
 
-test("innloggingssiden tilbyr Vipps og dev", async ({ page }) => {
+test("innloggingssiden tilbyr Vipps og e-post/passord", async ({ page }) => {
   await page.goto("/dashboard/login");
   await expect(page.getByRole("link", { name: /Logg inn med Vipps/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Logg inn \(dev\)/ })).toBeVisible();
+  await expect(page.getByLabel("E-post")).toBeVisible();
+  await expect(page.getByLabel("Passord")).toBeVisible();
 });
