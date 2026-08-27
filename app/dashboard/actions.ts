@@ -31,6 +31,7 @@ import {
 } from "@/lib/repository";
 import { opprettTrekk } from "@/lib/vipps-recurring";
 import { hashPassord, verifiserPassord } from "@/lib/passord";
+import { erRateLimited } from "@/lib/ratelimit";
 import { signerReset, verifiserReset } from "@/lib/token";
 import { sendEpost } from "@/lib/email";
 
@@ -390,6 +391,10 @@ export async function registrerMedEpost(formData: FormData) {
 export async function loggInnMedEpost(formData: FormData) {
   const epost = String(formData.get("epost") ?? "").trim();
   const passord = String(formData.get("passord") ?? "");
+
+  if (await erRateLimited("login:" + epost.toLowerCase())) {
+    redirect("/dashboard/login?feil=for-mange-forsok");
+  }
 
   let funn: { slug: string; passordHash: string | null } | null = null;
   try {

@@ -56,6 +56,9 @@ export default function Login({
         {searchParams.feil === "1" && (
           <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>Innloggingen ble avbrutt. Prøv igjen.</p>
         )}
+        {searchParams.feil === "for-mange-forsok" && (
+          <p style={{ color: "var(--accent-ink)", fontWeight: 600, marginTop: 10 }}>For mange forsøk. Vent litt før du prøver igjen.</p>
+        )}
 
         <form action={loggInnMedEpost} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
           <input name="epost" type="email" placeholder="E-post" required style={inputStyle} aria-label="E-post" />

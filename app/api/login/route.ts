@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, signerSlug } from "@/lib/auth";
 import { hentBedrift } from "@/lib/repository";
+import { erRateLimited } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "ukjent";
+  if (await erRateLimited("login-dev:" + ip)) {
+    return NextResponse.redirect(new URL("/dashboard/login?feil=for-mange-forsok", req.url), { status: 303 });
+  }
+
   const form = await req.formData();
   const slug = String(form.get("slug") ?? "").trim();
   const passord = String(form.get("passord") ?? "");
