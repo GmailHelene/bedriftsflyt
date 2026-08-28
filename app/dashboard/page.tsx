@@ -91,6 +91,35 @@ export default async function Dashboard({
       <h1 style={{ marginTop: 24 }}>Hei, {b.navn}</h1>
       <p className="muted">Din arbeidsflate.</p>
 
+      {/* Statistikk-kort: gjør skatteavsetning og ubetalte fakturaer synlige med
+          en gang, i stedet for å ligge som småtekst nede i Faktura-boksen. */}
+      {(() => {
+        const ubetalte = fakturaer.filter((f) => f.status !== "betalt");
+        const ubetaltSum = ubetalte.reduce((sum, f) => sum + f.sumKr, 0);
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginTop: 16 }}>
+            <div className="card" style={{ padding: "14px 16px" }}>
+              <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Avsatt til skatt</p>
+              <p style={{ fontSize: 22, fontWeight: 700, margin: "4px 0 0", color: "var(--ink)" }}>
+                {skattAvsatt.toLocaleString("nb-NO")} kr
+              </p>
+            </div>
+            <div className="card" style={{ padding: "14px 16px" }}>
+              <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Ubetalte fakturaer</p>
+              <p style={{ fontSize: 22, fontWeight: 700, margin: "4px 0 0", color: ubetalte.length > 0 ? "var(--accent-ink)" : "var(--ink)" }}>
+                {ubetalte.length} {ubetalte.length === 1 ? "stk" : "stk"} · {ubetaltSum.toLocaleString("nb-NO")} kr
+              </p>
+            </div>
+            <div className="card" style={{ padding: "14px 16px" }}>
+              <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Kommende bookinger</p>
+              <p style={{ fontSize: 22, fontWeight: 700, margin: "4px 0 0", color: "var(--ink)" }}>
+                {bookinger.length}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {!aktivtAbo && (
         <div
           className="card"
