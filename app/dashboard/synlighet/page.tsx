@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import QRCode from "qrcode";
 import { getSessionSlug } from "@/lib/auth";
 import DashboardNav from "../DashboardNav";
 import { hentBedrift } from "@/lib/repository";
@@ -34,6 +35,13 @@ export default async function Synlighet({
 
   const dbPa = harDatabase();
   const profilLenke = `app.kundebox.no/${b.slug}`;
+  const bookingUrl = `https://${profilLenke}`;
+  const qrSvg = await QRCode.toString(bookingUrl, {
+    type: "svg",
+    margin: 1,
+    color: { dark: "#241a22", light: "#ffffffff" },
+  });
+  const qrDataUri = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString("base64")}`;
 
   return (
     <main className="wrap">
@@ -47,11 +55,32 @@ export default async function Synlighet({
       {/* Din offentlige side */}
       <div className="card" style={{ padding: 20, marginTop: 20 }}>
         <h2 style={h2}>Din offentlige side</h2>
-        <p className="muted" style={{ fontSize: 14 }}>Lenka du deler overalt - Google, Instagram-bio, Facebook, visittkort:</p>
-        <p style={{ fontWeight: 700, color: "var(--accent-ink)", marginTop: 8, wordBreak: "break-all" }}>{profilLenke}</p>
-        <Link href={`/${b.slug}`} className="muted" style={{ fontSize: 14 }}>
-          Se siden →
-        </Link>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start", marginTop: 8 }}>
+          <div style={{ flex: "1 1 220px" }}>
+            <p className="muted" style={{ fontSize: 14 }}>Lenka du deler overalt - Google, Instagram-bio, Facebook, visittkort:</p>
+            <p style={{ fontWeight: 700, color: "var(--accent-ink)", marginTop: 8, wordBreak: "break-all" }}>{profilLenke}</p>
+            <Link href={`/${b.slug}`} className="muted" style={{ fontSize: 14 }}>
+              Se siden →
+            </Link>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <img
+              src={qrDataUri}
+              alt={`QR-kode til ${profilLenke}`}
+              width={120}
+              height={120}
+              style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 8, background: "#fff" }}
+            />
+            <a
+              href={qrDataUri}
+              download={`qr-${b.slug}.svg`}
+              className="muted"
+              style={{ display: "block", fontSize: 12.5, marginTop: 6 }}
+            >
+              Last ned QR-kode
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Google-bedriftsprofil */}
