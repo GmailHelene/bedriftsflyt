@@ -8,7 +8,7 @@ const CHIPS: [string, string][] = [
   ["/dashboard/samtaler", "Samtaler"],
   ["/dashboard/komponer", "KI-tekst"],
   ["/dashboard/utseende", "Utseende"],
-  ["/dashboard/synlighet", "Synlighet"],
+  ["/dashboard/synlighet", "Din side"],
   ["/dashboard/oppsett", "Innstillinger"],
 ];
 

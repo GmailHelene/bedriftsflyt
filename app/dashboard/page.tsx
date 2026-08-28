@@ -128,7 +128,7 @@ export default async function Dashboard({
 
       {/* Profil */}
       <form action={lagreProfil} className="card" style={{ padding: 20, marginTop: 20, display: "block" }}>
-        <h2>Profil</h2>
+        <h2>Din side</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
           <label>
             <span className="muted" style={{ fontSize: 13 }}>Navn</span>
@@ -144,10 +144,10 @@ export default async function Dashboard({
           </label>
         </div>
         <button className="btn" type="submit" style={{ marginTop: 14, width: "auto", padding: "12px 20px" }} disabled={!dbPa}>
-          Lagre profil
+          Lagre side
         </button>
         <Link href={`/${b.slug}`} className="muted" style={{ marginLeft: 14, fontSize: 14 }}>
-          Se offentlig profil →
+          Se offentlig side →
         </Link>
       </form>
 

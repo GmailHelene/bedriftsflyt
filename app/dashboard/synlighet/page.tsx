@@ -6,7 +6,7 @@ import { hentBedrift } from "@/lib/repository";
 import { harDatabase } from "@/lib/db";
 import { lagreAnmeldelse } from "../actions";
 
-export const metadata = { title: "Synlighet · Bedriftsflyt" };
+export const metadata = { title: "Din side · Bedriftsflyt" };
 
 const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
@@ -39,7 +39,7 @@ export default async function Synlighet({
     <main className="wrap">
       <DashboardNav />
 
-      <h1 style={{ marginTop: 24 }}>Synlighet</h1>
+      <h1 style={{ marginTop: 24 }}>Din side</h1>
       <p className="muted" style={{ maxWidth: "56ch" }}>
         Bli lettere å finne for kundene dine. Google-profil og anmeldelser er det som betyr mest lokalt.
       </p>
