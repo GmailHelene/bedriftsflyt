@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
       returUrl: new URL("/dashboard", origin).toString(),
     });
     return NextResponse.redirect(res.redirectUrl, { status: 303 });
-  } catch {
+  } catch (e) {
+    console.error("[vipps/faktura] opprettBetaling feilet:", e instanceof Error ? e.message : e);
     return NextResponse.redirect(new URL("/dashboard?vipps=feil", origin), { status: 303 });
   }
 }

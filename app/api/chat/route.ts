@@ -68,7 +68,8 @@ export async function POST(req: NextRequest) {
       /* logging/varsel skal aldri velte svaret */
     }
     return NextResponse.json({ svar });
-  } catch {
+  } catch (e) {
+    console.error("[chat] KI-kall feilet:", e instanceof Error ? e.message : e);
     return NextResponse.json({ feil: "KI-feil. Prøv igjen om litt." }, { status: 502 });
   }
 }

@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
     });
     await settAbonnement(slug, avtale.agreementId, "PENDING");
     return NextResponse.redirect(avtale.confirmationUrl, { status: 303 });
-  } catch {
-    return NextResponse.redirect(new URL("/dashboard?abonnement=feil", req.url), { status: 303 });
+  } catch (e) {
+    console.error("[vipps/abonnement/start] opprettAvtale feilet:", e instanceof Error ? e.message : e);
+    return NextResponse.redirect(new URL("/dashboard?abonnement=feil", origin), { status: 303 });
   }
 }

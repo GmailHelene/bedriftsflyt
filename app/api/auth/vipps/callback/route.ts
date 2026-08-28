@@ -53,7 +53,8 @@ export async function GET(req: NextRequest) {
     res.cookies.set(VIPPS_SUB_COOKIE, bruker.sub, { httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: 600 });
     res.cookies.delete(OIDC_STATE_COOKIE);
     return res;
-  } catch {
+  } catch (e) {
+    console.error("[auth/vipps/callback] innlogging feilet:", e instanceof Error ? e.message : e);
     return NextResponse.redirect(new URL("/dashboard/login?feil=1", origin), { status: 303 });
   }
 }

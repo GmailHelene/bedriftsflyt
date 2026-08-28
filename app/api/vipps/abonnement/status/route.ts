@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
     try {
       const live = await hentAvtale(ab.agreementId);
       await settAbonnement(slug, ab.agreementId, live.status);
-    } catch {
-      // ignorer — behold lagret status
+    } catch (e) {
+      console.warn("[vipps/abonnement/status] kunne ikke hente fersk status, beholder lagret:", e instanceof Error ? e.message : e);
     }
   }
   return NextResponse.redirect(new URL("/dashboard?abonnement=ok", origin), { status: 303 });
