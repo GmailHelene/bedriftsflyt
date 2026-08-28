@@ -138,7 +138,7 @@ export default async function Page({
           <p className="muted">
             {b.tagline} · {b.sted}
           </p>
-          {b.antallVurderinger > 0 ? (
+          {b.antallVurderinger > 0 && (
             <p className="stars">
               ★★★★★ <b>{b.rating.toLocaleString(t.datoLocale)}</b> · {b.antallVurderinger} {t.vurderinger}
               {b.anmeldelseUrl && (
@@ -150,8 +150,6 @@ export default async function Page({
                 </>
               )}
             </p>
-          ) : (
-            <p className="stars">{lang === "en" ? "New profile" : "Ny profil"}</p>
           )}
         </div>
 
