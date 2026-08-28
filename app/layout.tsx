@@ -25,6 +25,10 @@ export default function RootLayout({
   return (
     <html lang="nb">
       <body>
+        {/* Tynn petrol-strek, samme som på kundebox.no, så det er tydelig at
+            dette henger sammen med resten av Kundebox selv om fargeprofilen
+            ellers er egen for Bedriftsflyt. */}
+        <div style={{ height: 3, background: "#0f3b3f" }} aria-hidden="true" />
         {children}
         {/* GoatCounter - cookieless besøksstatistikk */}
         <Script

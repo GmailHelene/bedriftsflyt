@@ -18,6 +18,12 @@ export default function Home() {
         gap: 18,
       }}
     >
+      <a
+        href="https://kundebox.no"
+        style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: "#0f3b3f", fontWeight: 700, textDecoration: "none" }}
+      >
+        Del av Kundebox
+      </a>
       <div className="brand" style={{ fontSize: 22 }}>
         <span className="mark" aria-hidden="true" />
         Bedriftsflyt
