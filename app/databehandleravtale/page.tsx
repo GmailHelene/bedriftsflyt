@@ -1,21 +1,19 @@
 import Link from "next/link";
 
 /**
- * Databehandleravtale (DPA) - UTKAST, ikke juridisk kvalitetssikret.
+ * Databehandleravtale (DPA), godkjent av Helene 28.08.2026.
  *
  * Bedriftens bruker av Bedriftsflyt er behandlingsansvarlig for sine egne
  * sluttkunders persondata (navn, telefon, epost samlet via booking).
  * Grønberg Tech Solutions er databehandler. GDPR art. 28 nr. 3 krever en
- * skriftlig avtale mellom partene. Dette er et FØRSTE UTKAST basert på
- * hvordan appen faktisk fungerer, ment for gjennomlesning før publisering,
- * ikke ferdig juridisk tekst. Vurder å la en jurist se over før den gjøres
- * bindende (f.eks. via avkrysning ved registrering).
+ * skriftlig avtale mellom partene.
  *
- * Sist oppdatert: 28. august 2026 (utkast)
+ * Sist oppdatert: 28. august 2026
  */
 export const metadata = {
-  title: "Databehandleravtale (utkast) - Bedriftsflyt",
-  robots: { index: false, follow: false },
+  title: "Databehandleravtale - Bedriftsflyt",
+  alternates: { canonical: "/databehandleravtale" },
+  robots: { index: true, follow: true },
 };
 
 const wrap: React.CSSProperties = {
@@ -42,15 +40,8 @@ const warnBox: React.CSSProperties = {
 export default function DatabehandleravtalePage() {
   return (
     <main style={wrap}>
-      <div style={warnBox}>
-        <strong>Dette er et utkast, ikke en ferdig avtale.</strong> Innholdet under er skrevet ut fra
-        hvordan Bedriftsflyt faktisk fungerer i dag, men er ikke kvalitetssikret av jurist. Les gjennom,
-        rett det som ikke stemmer, og ta stilling til om noen bør se over den før den gjøres bindende
-        (f.eks. ved at bedriften krysser av for at den godtar denne ved registrering).
-      </div>
-
       <h1 style={h1Style}>Databehandleravtale, Bedriftsflyt</h1>
-      <div style={subStyle}>Utkast, 28. august 2026</div>
+      <div style={subStyle}>Sist oppdatert 28. august 2026</div>
 
       <p style={pStyle}>
         Denne avtalen regulerer Grønberg Tech Solutions (databehandler) sin behandling av
