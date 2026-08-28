@@ -36,6 +36,25 @@ test("Vipps-abonnement gir forståelig redirect, ikke en krasjside, uten nøkler
 });
 
 
+test("registreringsskjema viser riktig domene (app.kundebox.no, ikke bedriftsflyt.no)", async ({ page }) => {
+  await page.goto("/dashboard/registrer");
+  await expect(page.getByText("app.kundebox.no/")).toBeVisible();
+  await expect(page.getByText("bedriftsflyt.no/")).not.toBeVisible();
+});
+
+test("registrering avvises av nettleseren ved ugyldig e-post eller for kort passord", async ({ page }) => {
+  await page.goto("/dashboard/registrer");
+  await page.getByLabel("Bedriftsnavn").fill("Test Bedrift");
+  await page.getByLabel("E-post").fill("ikke-en-epost");
+  await page.getByLabel(/Passord/).fill("kort");
+  await page.getByRole("button", { name: "Opprett konto" }).click();
+  // Nettleserens innebygde validering (type="email", minLength) skal stoppe
+  // innsendingen client-side, vi skal aldri havne på en server-feilside.
+  await expect(page).toHaveURL(/\/dashboard\/registrer/);
+  const epostGyldig = await page.getByLabel("E-post").evaluate((el: HTMLInputElement) => el.checkValidity());
+  expect(epostGyldig).toBe(false);
+});
+
 test("e-post-innlogging stopper etter for mange feilforsøk (rate-limiting)", async ({ page }) => {
   const epost = `rate-test-${Date.now()}@eksempel.no`;
   for (let i = 0; i < 13; i++) {

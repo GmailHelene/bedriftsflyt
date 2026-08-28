@@ -33,7 +33,7 @@ export default async function Synlighet({
   if (!b) redirect("/dashboard/login");
 
   const dbPa = harDatabase();
-  const profilLenke = `bedriftsflyt.no/${b.slug}`;
+  const profilLenke = `app.kundebox.no/${b.slug}`;
 
   return (
     <main className="wrap">

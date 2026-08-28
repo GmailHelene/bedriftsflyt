@@ -50,7 +50,7 @@ export default function Onboarding({ searchParams }: { searchParams: { feil?: st
           <label>
             <span className="muted" style={{ fontSize: 13 }}>Din nettadresse</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <span className="muted" style={{ fontSize: 14, whiteSpace: "nowrap" }}>bedriftsflyt.no/</span>
+              <span className="muted" style={{ fontSize: 14, whiteSpace: "nowrap" }}>app.kundebox.no/</span>
               <input name="slug" placeholder="silje" required style={inputStyle} />
             </div>
           </label>

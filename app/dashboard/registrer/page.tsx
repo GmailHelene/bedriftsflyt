@@ -62,7 +62,7 @@ export default function Registrer({
           <label>
             <span className="muted" style={{ fontSize: 13 }}>Ønsket nettadresse</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span className="muted" style={{ fontSize: 14, whiteSpace: "nowrap" }}>bedriftsflyt.no/</span>
+              <span className="muted" style={{ fontSize: 14, whiteSpace: "nowrap" }}>app.kundebox.no/</span>
               <input name="slug" placeholder="silje" style={inputStyle} />
             </div>
             <span className="muted" style={{ fontSize: 12 }}>La stå tom for å lage den fra navnet.</span>
