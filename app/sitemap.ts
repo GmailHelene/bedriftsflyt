@@ -6,9 +6,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Offentlige bedriftsprofiler legges til her når katalogen finnes (fase 2).
   return [
     { url: base, lastModified: naa },
-    { url: `${base}/skjonnhet`, lastModified: naa },
-    { url: `${base}/handverker`, lastModified: naa },
     { url: `${base}/vilkar`, lastModified: naa },
     { url: `${base}/personvern`, lastModified: naa },
+    { url: `${base}/databehandleravtale`, lastModified: naa },
   ];
 }
