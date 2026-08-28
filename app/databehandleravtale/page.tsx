@@ -109,7 +109,12 @@ export default function DatabehandleravtalePage() {
 
       <h2 style={h2Style}>6. Overføring utenfor EU/EØS</h2>
       <p style={pStyle}>
-        <em>[Ikke bekreftet: hvilken region Railway-databasen og Anthropic sin API-behandling faktisk kjører i, må fylles inn her før dette punktet er komplett. Hvis noen av underdatabehandlerne behandler data utenfor EU/EØS, må overføringsgrunnlag (f.eks. EUs standardklausuler) spesifiseres.]</em>
+        Railway-databasen for Bedriftsflyt kjører i EU-vest, ingen overføring ut av EU/EØS for booking-
+        og kontodata. Vipps og Brevo behandler data i Norge/EU. Anthropic (KI-assistenten) er et
+        amerikansk selskap, og behandling av kundedialog kan skje på infrastruktur utenfor EU/EØS.
+        Overføringsgrunnlaget er EUs standardklausuler (SCC), som Anthropic tilbyr i sin egen
+        databehandleravtale. <em>[Vurder å be Anthropic bekrefte SCC-status skriftlig, og legg ved som
+        vedlegg, hvis denne avtalen skal gjøres fullt bindende.]</em>
       </p>
 
       <h2 style={h2Style}>7. Sletting eller retur ved avtaleslutt</h2>
