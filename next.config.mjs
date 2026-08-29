@@ -35,10 +35,13 @@ const nextConfig = {
     // Server Actions bak Railways proxy: godta forespørsler fra prod-domenene
     // (uten dette kan Next avvise form-actions når forwarded host != host).
     serverActions: {
-      allowedOrigins: ["bedriftsflyt.no", "www.bedriftsflyt.no", "bedriftsflyt-production.up.railway.app"],
+      // app.kundebox.no er dagens domene. De to gamle bedriftsflyt.no-oppføringene
+      // står igjen som et ufarlig sikkerhetsnett i overgangen, ikke fjernet ennå.
+      allowedOrigins: ["app.kundebox.no", "bedriftsflyt.no", "www.bedriftsflyt.no", "bedriftsflyt-production.up.railway.app"],
       bodySizeLimit: "2mb", // rom for komprimerte bilde-opplastinger (base64)
     },
   },
+  poweredByHeader: false,
   async headers() {
     return [
       {
@@ -49,6 +52,10 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+          { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
         ],
       },
     ];
