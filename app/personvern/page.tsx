@@ -19,7 +19,7 @@ export default function Personvern() {
       <p className="muted">Sist oppdatert: 8. august 2026</p>
 
       <h2 style={h2}>1. Behandlingsansvarlig</h2>
-      <p>Bedriftsflyt er et produkt fra Grønberg Tech Solutions (enkeltpersonforetak, org.nr 927 889 404). Grønberg Tech Solutions, post@bedriftsflyt.no, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Grønberg Tech Solutions er databehandler, regulert i vår <Link href="/databehandleravtale">databehandleravtale</Link>.</p>
+      <p>Bedriftsflyt er et produkt fra Grønberg Tech Solutions (enkeltpersonforetak, org.nr 927 889 404). Grønberg Tech Solutions, kontakt@helene.cloud, er behandlingsansvarlig for opplysninger om deg som bruker tjenesten. For opplysninger om dine sluttkunder er du behandlingsansvarlig, og Grønberg Tech Solutions er databehandler, regulert i vår <Link href="/databehandleravtale">databehandleravtale</Link>.</p>
 
       <h2 style={h2}>2. Hvilke opplysninger vi behandler</h2>
       <p>Kontodata for deg som bedrift, betalingsopplysninger (håndteres av Vipps, vi lagrer ikke kortdata), samt booking- og kundedata som legges inn i tjenesten.</p>
@@ -36,7 +36,7 @@ export default function Personvern() {
       <p>Kontodata og bookingdata lagres så lenge kundeforholdet varer, og slettes eller anonymiseres deretter. Fakturadata (beløp, dato, hva som er fakturert) lagres i minimum 5 år etter utstedelse, som bokføringsloven §13 krever, selv om kontoen for øvrig avsluttes.</p>
 
       <h2 style={h2}>6. Dine rettigheter</h2>
-      <p>Du har rett til innsyn, retting, sletting og dataportabilitet. Kontakt post@bedriftsflyt.no. Du kan klage til Datatilsynet.</p>
+      <p>Du har rett til innsyn, retting, sletting og dataportabilitet. Kontakt kontakt@helene.cloud. Du kan klage til Datatilsynet.</p>
 
       <h2 style={h2}>7. Informasjonskapsler</h2>
       <p>Vi bruker kun nødvendige (funksjonelle) informasjonskapsler for innlogging. Vi bruker ikke sporing eller markedsføringskapsler. For å se hvor mange som besøker siden bruker vi GoatCounter, en personvernvennlig og cookieless besøksstatistikk som ikke setter informasjonskapsler eller lagrer personopplysninger.</p>
